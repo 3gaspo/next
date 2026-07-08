@@ -21,7 +21,7 @@ import {
   ShieldCheck
 } from 'lucide-react';
 
-const SUPPORT_URL = "https://ko-fi.com/gberthelier";
+const SUPPORT_URL = "https://ko-fi.com/3gaspo";
 
 export default function Settings() {
   const { user, settings, updateSettings, tasks, clearHistory, resetAll } = useData();
@@ -201,11 +201,11 @@ export default function Settings() {
       <footer className="flex flex-col items-center gap-8 py-12 opacity-80 transition-opacity">
         <div className="flex flex-col items-center text-center gap-2">
            <img 
-            src="/next.svg" 
+            src="/gaspo_logo.svg" 
             alt="Logo" 
-            className="w-24 h-24 dark:invert transition-all mb-2"
+            className="w-40 h-40 dark:invert transition-all"
             onError={(e) => {
-              (e.target as any).src = 'https://placehold.co/96x96?text=Next';
+              (e.target as any).src = 'https://placehold.co/160x160?text=Next';
             }}
           />
           <div>
