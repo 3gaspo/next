@@ -1,0 +1,6 @@
+{
+  "name": "Next",
+  "description": "A priority-based task manager with an infinite hierarchical structure and deterministic scoring.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["firebase"]
+}
