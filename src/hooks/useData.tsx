@@ -24,7 +24,7 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 export function DataProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<{ uid: string; email: string | null } | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [settings, setSettings] = useState<UserSettings>({ priority: DEFAULT_PRIORITY_SETTINGS, darkMode: false });
+  const [settings, setSettings] = useState<UserSettings>({ priority: DEFAULT_PRIORITY_SETTINGS, darkMode: false, showScores: false });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -46,7 +46,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         dataProvider.getSettings(user.uid)
       ]);
       setTasks(fetchedTasks);
-      if (fetchedSettings) setSettings(fetchedSettings);
+      setSettings({
+        priority: { ...DEFAULT_PRIORITY_SETTINGS, ...(fetchedSettings?.priority || {}) },
+        darkMode: Boolean(fetchedSettings?.darkMode),
+        showScores: Boolean(fetchedSettings?.showScores)
+      });
     } catch (error) {
       console.error('Fetch error:', error);
     } finally {
@@ -113,15 +117,25 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   const updateSettings = async (newSettings: UserSettings) => {
     if (!user) return;
-    setSettings(newSettings);
-    await dataProvider.saveSettings(user.uid, newSettings);
+    const normalized: UserSettings = {
+      ...newSettings,
+      priority: { ...DEFAULT_PRIORITY_SETTINGS, ...(newSettings.priority || {}) },
+      darkMode: Boolean(newSettings.darkMode),
+      showScores: Boolean(newSettings.showScores)
+    };
+    setSettings(normalized);
+    await dataProvider.saveSettings(user.uid, normalized);
   };
 
   const resetAll = async () => {
     if (!user) return;
     const allTaskIds = tasks.map(t => t.id);
     await dataProvider.deleteTasks(user.uid, allTaskIds);
-    const defaultSettings = { priority: DEFAULT_PRIORITY_SETTINGS, darkMode: settings.darkMode };
+    const defaultSettings: UserSettings = { 
+      priority: DEFAULT_PRIORITY_SETTINGS, 
+      darkMode: Boolean(settings.darkMode), 
+      showScores: Boolean(settings.showScores) 
+    };
     setSettings(defaultSettings);
     await dataProvider.saveSettings(user.uid, defaultSettings);
     await fetchData();

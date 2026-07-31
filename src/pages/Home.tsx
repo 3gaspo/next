@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useData } from '../hooks/useData';
 import { TaskCard } from '../components/TaskCard';
 import TaskModal from '../components/TaskModal';
 import { Task } from '../types';
 import { getRootProject } from '../lib/tree';
+import { calculatePriorityScore } from '../lib/priority';
 import { Plus, LayoutGrid } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -11,6 +12,13 @@ export default function Home() {
   const { user, actionableTasks, tasks, settings, toggleTask, saveTask, loading } = useData();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+
+  const overallScore = useMemo(() => {
+    const active = actionableTasks.filter(t => !t.completed);
+    if (active.length === 0) return 0;
+    const total = active.reduce((acc, t) => acc + calculatePriorityScore(t, settings.priority), 0);
+    return Number((total / active.length).toFixed(1));
+  }, [actionableTasks, settings.priority]);
 
   if (!user && !loading) {
     return (
@@ -36,6 +44,8 @@ export default function Home() {
     setIsModalOpen(true);
   };
 
+  const isScoresEnabled = Boolean(settings.showScores);
+
   return (
     <div className="px-6 pt-12 pb-24 max-w-lg mx-auto">
       <header className="flex items-center justify-between mb-10">
@@ -43,6 +53,12 @@ export default function Home() {
           <h1 className="text-4xl font-bold tracking-tight mb-1">Today</h1>
           <p className="text-zinc-400 font-medium">{actionableTasks.length} actionable tasks</p>
         </div>
+        {isScoresEnabled && (
+          <div className="text-right">
+            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 block">Overall Score</span>
+            <span className="text-xl font-black text-zinc-900 dark:text-zinc-100">{overallScore}</span>
+          </div>
+        )}
       </header>
 
       <div className="space-y-4">
@@ -55,6 +71,7 @@ export default function Home() {
                 task={task}
                 rootProjectName={root?.name}
                 settings={settings.priority}
+                showScores={isScoresEnabled}
                 onToggle={toggleTask}
                 onEdit={handleEdit}
               />

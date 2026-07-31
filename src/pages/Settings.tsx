@@ -52,11 +52,18 @@ export default function Settings() {
     }
   };
 
+  const isDarkMode = Boolean(settings.darkMode);
+  const isScoresEnabled = Boolean(settings.showScores);
+
   const toggleDarkMode = () => {
-    const newMode = !settings.darkMode;
+    const newMode = !isDarkMode;
     updateSettings({ ...settings, darkMode: newMode });
     if (newMode) document.documentElement.classList.add('dark');
     else document.documentElement.classList.remove('dark');
+  };
+
+  const toggleShowScores = () => {
+    updateSettings({ ...settings, showScores: !isScoresEnabled });
   };
 
   return (
@@ -89,21 +96,42 @@ export default function Settings() {
         </div>
       </section>
 
-      {/* Appearance */}
-      <section className="bg-black/5 dark:bg-white/5 p-8 rounded-[32px] space-y-6">
-        <h2 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Appearance</h2>
+      {/* Appearance & Display */}
+      <section className="bg-black/5 dark:bg-white/5 p-8 rounded-[32px] space-y-4">
+        <h2 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Appearance & Display</h2>
+        
         <button 
+          type="button"
           onClick={toggleDarkMode}
-          className="w-full flex items-center justify-between bg-white dark:bg-zinc-900 p-6 rounded-[24px] shadow-sm active:scale-[0.99] transition-all"
+          className="w-full flex items-center justify-between bg-white dark:bg-zinc-900 p-6 rounded-[24px] shadow-sm active:scale-[0.99] transition-all cursor-pointer"
         >
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 bg-zinc-100 dark:bg-zinc-800 rounded-2xl flex items-center justify-center text-zinc-500">
               <Moon size={20} />
             </div>
-            <span className="font-bold">Dark Mode</span>
+            <span className="font-bold text-zinc-900 dark:text-zinc-100">Dark Mode</span>
           </div>
-          <div className={`w-12 h-6 rounded-full p-1 transition-colors ${settings.darkMode ? 'bg-black dark:bg-white' : 'bg-zinc-200'}`}>
-            <div className={`w-4 h-4 rounded-full transition-transform ${settings.darkMode ? 'translate-x-6 bg-white dark:bg-black' : 'bg-white'}`} />
+          <div className={`w-12 h-6 rounded-full p-1 transition-colors ${isDarkMode ? 'bg-black dark:bg-white' : 'bg-zinc-200 dark:bg-zinc-800'}`}>
+            <div className={`w-4 h-4 rounded-full transition-transform ${isDarkMode ? 'translate-x-6 bg-white dark:bg-black' : 'bg-white dark:bg-zinc-400'}`} />
+          </div>
+        </button>
+
+        <button 
+          type="button"
+          onClick={toggleShowScores}
+          className="w-full flex items-center justify-between bg-white dark:bg-zinc-900 p-6 rounded-[24px] shadow-sm active:scale-[0.99] transition-all cursor-pointer"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 bg-zinc-100 dark:bg-zinc-800 rounded-2xl flex items-center justify-center text-zinc-500">
+              {isScoresEnabled ? <Eye size={20} /> : <EyeOff size={20} />}
+            </div>
+            <div className="text-left">
+              <span className="font-bold block text-zinc-900 dark:text-zinc-100">Show Priority Scores</span>
+              <span className="text-xs text-zinc-400 font-medium">Display overall, category, and task scores</span>
+            </div>
+          </div>
+          <div className={`w-12 h-6 rounded-full p-1 transition-colors ${isScoresEnabled ? 'bg-black dark:bg-white' : 'bg-zinc-200 dark:bg-zinc-800'}`}>
+            <div className={`w-4 h-4 rounded-full transition-transform ${isScoresEnabled ? 'translate-x-6 bg-white dark:bg-black' : 'bg-white dark:bg-zinc-400'}`} />
           </div>
         </button>
       </section>

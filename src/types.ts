@@ -26,6 +26,7 @@ export interface PrioritySettings {
 export interface UserSettings {
   priority: PrioritySettings;
   darkMode: boolean;
+  showScores?: boolean;
 }
 
 export const DEFAULT_PRIORITY_SETTINGS: PrioritySettings = {

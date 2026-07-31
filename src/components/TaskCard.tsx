@@ -9,11 +9,12 @@ interface TaskCardProps {
   task: Task;
   rootProjectName?: string;
   settings: PrioritySettings;
+  showScores?: boolean;
   onToggle: (taskId: string) => Promise<void> | void;
   onEdit: (task: Task) => void;
 }
 
-export const TaskCard: React.FC<TaskCardProps> = ({ task, rootProjectName, settings, onToggle, onEdit }) => {
+export const TaskCard: React.FC<TaskCardProps> = ({ task, rootProjectName, settings, showScores = false, onToggle, onEdit }) => {
   const score = calculatePriorityScore(task, settings);
   
   return (
@@ -59,9 +60,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, rootProjectName, setti
             {task.completed ? <CheckCircle2 size={32} className="text-green-500" /> : <Circle size={32} />}
           </button>
           <div className="flex items-center gap-2">
-             <div className="text-xs font-black bg-zinc-900 dark:bg-white text-white dark:text-black px-2 py-1 rounded-full opacity-30 group-hover:opacity-100 transition-opacity">
-              {score}
-            </div>
+            {showScores && (
+              <div className="text-xs font-black bg-zinc-900 dark:bg-white text-white dark:text-black px-2 py-1 rounded-full opacity-70 group-hover:opacity-100 transition-opacity">
+                {score}
+              </div>
+            )}
             <button 
               onClick={() => onEdit(task)}
               className="p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 transition-colors"

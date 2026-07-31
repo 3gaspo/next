@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useData } from '../hooks/useData';
 import { Task } from '../types';
-import { getChildren, hasChildren, getBreadcrumbPath, getDescendantCounts } from '../lib/tree';
+import { getChildren, hasChildren, getBreadcrumbPath, getDescendantCounts, getDescendants, getLeafTasks } from '../lib/tree';
+import { calculatePriorityScore } from '../lib/priority';
 import TaskModal from '../components/TaskModal';
 import { 
   ChevronRight, 
@@ -17,7 +18,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function Database() {
-  const { user, tasks, saveTask, toggleTask, deleteTask, loading } = useData();
+  const { user, tasks, settings, saveTask, toggleTask, deleteTask, loading } = useData();
   const [currentParentId, setCurrentParentId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -116,6 +117,20 @@ export default function Database() {
             const isFolder = hasChildren(task.id, tasks);
             const { total, completed } = getDescendantCounts(task.id, tasks);
             
+            let itemScore: number | null = null;
+            if (settings.showScores) {
+              if (isFolder) {
+                const descendants = getDescendants(task.id, tasks);
+                const activeLeaves = getLeafTasks(descendants).filter(d => !d.completed);
+                if (activeLeaves.length > 0) {
+                  const sum = activeLeaves.reduce((acc, t) => acc + calculatePriorityScore(t, settings.priority), 0);
+                  itemScore = Number((sum / activeLeaves.length).toFixed(1));
+                }
+              } else {
+                itemScore = calculatePriorityScore(task, settings.priority);
+              }
+            }
+            
             return (
               <motion.div
                 key={task.id}
@@ -125,49 +140,59 @@ export default function Database() {
                 onClick={() => isFolder ? setCurrentParentId(task.id) : null}
                 className="group w-full flex items-center justify-between gap-4 p-6 bg-white dark:bg-zinc-900 rounded-[24px] shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-[0.99]"
               >
-                <div className="flex items-center gap-4 flex-1">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isFolder ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300' : 'bg-transparent text-zinc-400'}`}>
+                <div className="flex items-center gap-4 flex-1 min-w-0">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${isFolder ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300' : 'bg-transparent text-zinc-400'}`}>
                     {isFolder ? <Folder size={20} fill="currentColor" opacity={0.2} /> : <FileText size={20} />}
                   </div>
-                  <div className="flex-1">
-                    <h3 className={`font-bold tracking-tight ${task.completed ? 'text-zinc-400 line-through' : 'text-zinc-900 dark:text-zinc-100'}`}>
+                  <div className="flex-1 min-w-0">
+                    <h3 className={`font-bold tracking-tight truncate ${task.completed ? 'text-zinc-400 line-through' : 'text-zinc-900 dark:text-zinc-100'}`}>
                       {task.name}
                     </h3>
-                    <p className="text-[10px] uppercase font-bold tracking-widest text-zinc-400">
-                      {isFolder ? `${completed} / ${total} tasks` : 'Leaf Task'}
+                    <p className="text-[10px] uppercase font-bold tracking-widest text-zinc-400 truncate">
+                      {isFolder 
+                        ? `${completed} / ${total} tasks` + (settings.showScores && itemScore !== null ? ` • Category Score: ${itemScore}` : '')
+                        : 'Leaf Task'}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {!isFolder && (
-                    <button 
-                      onClick={(e) => handleToggle(task.id, e)}
-                      className="p-2 text-zinc-300 hover:text-green-500 transition-colors"
-                    >
-                      {task.completed ? <CheckCircle2 size={24} className="text-green-500" /> : <Circle size={24} />}
-                    </button>
+                <div className="flex items-center gap-2 shrink-0">
+                  {settings.showScores && itemScore !== null && (
+                    <span className="text-xs font-black bg-zinc-900 dark:bg-white text-white dark:text-black px-2.5 py-1 rounded-full opacity-80 group-hover:opacity-100 transition-opacity">
+                      {itemScore}
+                    </span>
                   )}
-                  <button 
-                    onClick={(e) => handleAddChild(task, e)}
-                    className="p-2 text-zinc-300 hover:text-zinc-600 dark:hover:text-zinc-100 transition-colors"
-                    title="Add Child"
-                  >
-                    <Plus size={20} />
-                  </button>
-                  <button 
-                    onClick={(e) => handleEdit(task, e)}
-                    className="p-2 text-zinc-300 hover:text-zinc-600 dark:hover:text-zinc-100 transition-colors"
-                  >
-                    <Edit2 size={18} />
-                  </button>
-                  <button 
-                    onClick={(e) => handleDelete(task.id, e)}
-                    className="p-2 text-zinc-300 hover:text-red-500 transition-colors"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                  {isFolder && <ChevronRight size={18} className="text-zinc-300 ml-2" />}
+                  
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {!isFolder && (
+                      <button 
+                        onClick={(e) => handleToggle(task.id, e)}
+                        className="p-2 text-zinc-300 hover:text-green-500 transition-colors"
+                      >
+                        {task.completed ? <CheckCircle2 size={24} className="text-green-500" /> : <Circle size={24} />}
+                      </button>
+                    )}
+                    <button 
+                      onClick={(e) => handleAddChild(task, e)}
+                      className="p-2 text-zinc-300 hover:text-zinc-600 dark:hover:text-zinc-100 transition-colors"
+                      title="Add Child"
+                    >
+                      <Plus size={20} />
+                    </button>
+                    <button 
+                      onClick={(e) => handleEdit(task, e)}
+                      className="p-2 text-zinc-300 hover:text-zinc-600 dark:hover:text-zinc-100 transition-colors"
+                    >
+                      <Edit2 size={18} />
+                    </button>
+                    <button 
+                      onClick={(e) => handleDelete(task.id, e)}
+                      className="p-2 text-zinc-300 hover:text-red-500 transition-colors"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                    {isFolder && <ChevronRight size={18} className="text-zinc-300 ml-2" />}
+                  </div>
                 </div>
               </motion.div>
             );
