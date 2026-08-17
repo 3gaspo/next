@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Task } from '../types';
-import { X, Calendar, Target, Clock, Zap, Heart } from 'lucide-react';
+import { X, Calendar, Target, Clock, Zap, Heart, CalendarPlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { format, parseISO } from 'date-fns';
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ interface TaskModalProps {
 
 export default function TaskModal({ isOpen, onClose, onSave, task, parentId }: TaskModalProps) {
   const [name, setName] = useState('');
+  const [addedDate, setAddedDate] = useState<string>('');
   const [deadline, setDeadline] = useState<string>('');
   const [importance, setImportance] = useState('5');
   const [duration, setDuration] = useState('30');
@@ -20,8 +22,10 @@ export default function TaskModal({ isOpen, onClose, onSave, task, parentId }: T
   const [appreciation, setAppreciation] = useState('5');
 
   useEffect(() => {
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
     if (task) {
       setName(task.name);
+      setAddedDate(task.createdAt ? format(parseISO(task.createdAt), 'yyyy-MM-dd') : todayStr);
       setDeadline(task.deadline || '');
       setImportance(String(task.importance));
       setDuration(String(task.duration));
@@ -29,6 +33,7 @@ export default function TaskModal({ isOpen, onClose, onSave, task, parentId }: T
       setAppreciation(String(task.appreciation));
     } else {
       setName('');
+      setAddedDate(todayStr);
       setDeadline('');
       setImportance('5');
       setDuration('30');
@@ -39,9 +44,21 @@ export default function TaskModal({ isOpen, onClose, onSave, task, parentId }: T
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Create an ISO string for createdAt from the chosen addedDate
+    let createdAtISO: string;
+    if (addedDate) {
+      // Preserve time or set to beginning of selected day
+      const parsedDate = new Date(`${addedDate}T00:00:00`);
+      createdAtISO = isNaN(parsedDate.getTime()) ? new Date().toISOString() : parsedDate.toISOString();
+    } else {
+      createdAtISO = new Date().toISOString();
+    }
+
     onSave({
       ...(task ? { id: task.id } : {}),
       name,
+      createdAt: createdAtISO,
       deadline: deadline || null,
       importance: Number(importance) || 0,
       duration: Number(duration) || 0,
@@ -91,6 +108,18 @@ export default function TaskModal({ isOpen, onClose, onSave, task, parentId }: T
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                  <CalendarPlus size={12} /> Added Date
+                </label>
+                <input
+                  type="date"
+                  value={addedDate}
+                  onChange={e => setAddedDate(e.target.value)}
+                  className="w-full bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-2xl border-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all"
+                />
+              </div>
+
               <div className="space-y-2">
                 <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2">
                   <Calendar size={12} /> Deadline

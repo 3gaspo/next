@@ -27,15 +27,16 @@ export interface UserSettings {
   priority: PrioritySettings;
   darkMode: boolean;
   showScores?: boolean;
+  maxHomeTasks?: number;
 }
 
 export const DEFAULT_PRIORITY_SETTINGS: PrioritySettings = {
-  deadlineWeight: 5,
-  ageWeight: 2,
-  importanceWeight: 4,
+  deadlineWeight: 2,
+  ageWeight: 3,
+  importanceWeight: 2,
   durationWeight: 1,
   effortWeight: -1,
-  appreciationWeight: 3,
+  appreciationWeight: 1,
 };
 
 export interface AuthState {

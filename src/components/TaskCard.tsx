@@ -1,7 +1,7 @@
 import React from 'react';
 import { Task, PrioritySettings } from '../types';
 import { calculatePriorityScore } from '../lib/priority';
-import { CheckCircle2, Circle, Edit2, Calendar, Target, Clock, Zap, Heart } from 'lucide-react';
+import { CheckCircle2, Circle, Edit2, Calendar, Target, Clock, Zap, Heart, FastForward } from 'lucide-react';
 import { motion } from 'motion/react';
 import { format, parseISO } from 'date-fns';
 
@@ -12,9 +12,18 @@ interface TaskCardProps {
   showScores?: boolean;
   onToggle: (taskId: string) => Promise<void> | void;
   onEdit: (task: Task) => void;
+  onSkip?: (taskId: string) => void;
 }
 
-export const TaskCard: React.FC<TaskCardProps> = ({ task, rootProjectName, settings, showScores = false, onToggle, onEdit }) => {
+export const TaskCard: React.FC<TaskCardProps> = ({ 
+  task, 
+  rootProjectName, 
+  settings, 
+  showScores = false, 
+  onToggle, 
+  onEdit,
+  onSkip 
+}) => {
   const score = calculatePriorityScore(task, settings);
   
   return (
@@ -22,6 +31,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, rootProjectName, setti
       layout
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95, y: -10 }}
+      transition={{ duration: 0.2 }}
       className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-3xl p-6 shadow-sm hover:shadow-md transition-all group"
     >
       <div className="flex items-start justify-between gap-4">
@@ -55,19 +66,29 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, rootProjectName, setti
         <div className="flex flex-col items-end gap-3">
           <button 
             onClick={() => onToggle(task.id)}
-            className="text-zinc-300 dark:text-zinc-700 hover:text-green-500 dark:hover:text-green-500 transition-colors"
+            className="text-zinc-300 dark:text-zinc-700 hover:text-green-500 dark:hover:text-green-500 transition-colors cursor-pointer"
           >
             {task.completed ? <CheckCircle2 size={32} className="text-green-500" /> : <Circle size={32} />}
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {showScores && (
               <div className="text-xs font-black bg-zinc-900 dark:bg-white text-white dark:text-black px-2 py-1 rounded-full opacity-70 group-hover:opacity-100 transition-opacity">
                 {score}
               </div>
             )}
+            {onSkip && !task.completed && (
+              <button 
+                type="button"
+                title="Skip for today"
+                onClick={() => onSkip(task.id)}
+                className="p-2 rounded-full hover:bg-amber-50 dark:hover:bg-amber-950/30 text-zinc-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors cursor-pointer"
+              >
+                <FastForward size={16} />
+              </button>
+            )}
             <button 
               onClick={() => onEdit(task)}
-              className="p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 transition-colors"
+              className="p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 transition-colors cursor-pointer"
             >
               <Edit2 size={16} />
             </button>

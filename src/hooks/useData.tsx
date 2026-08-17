@@ -10,6 +10,10 @@ interface DataContextType {
   actionableTasks: Task[];
   settings: UserSettings;
   loading: boolean;
+  skippedTaskIds: string[];
+  skipTaskForToday: (taskId: string) => void;
+  unskipTask: (taskId: string) => void;
+  resetSkippedTasks: () => void;
   saveTask: (taskData: Partial<Task>) => Promise<void>;
   toggleTask: (taskId: string) => Promise<void>;
   deleteTask: (taskId: string) => Promise<void>;
@@ -21,11 +25,19 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
+const SKIPPED_TASKS_KEY = 'next_skipped_tasks';
+
+function getTodayKey(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 export function DataProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<{ uid: string; email: string | null } | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [settings, setSettings] = useState<UserSettings>({ priority: DEFAULT_PRIORITY_SETTINGS, darkMode: false, showScores: false });
+  const [settings, setSettings] = useState<UserSettings>({ priority: DEFAULT_PRIORITY_SETTINGS, darkMode: false, showScores: false, maxHomeTasks: 3 });
   const [loading, setLoading] = useState(true);
+  const [skippedTaskIds, setSkippedTaskIds] = useState<string[]>([]);
 
   useEffect(() => {
     const unsub = authProvider.onAuthStateChanged((state) => {
@@ -33,10 +45,68 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       if (!state.user) {
         setTasks([]);
         setLoading(false);
+        setSkippedTaskIds([]);
       }
     });
     return unsub;
   }, []);
+
+  // Load skipped tasks for today for current user
+  useEffect(() => {
+    if (!user) {
+      setSkippedTaskIds([]);
+      return;
+    }
+    try {
+      const stored = localStorage.getItem(`${SKIPPED_TASKS_KEY}_${user.uid}`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.date === getTodayKey() && Array.isArray(parsed.taskIds)) {
+          setSkippedTaskIds(parsed.taskIds);
+          return;
+        }
+      }
+    } catch (e) {
+      console.error('Error loading skipped tasks:', e);
+    }
+    setSkippedTaskIds([]);
+  }, [user]);
+
+  const saveSkippedToStorage = useCallback((uid: string, ids: string[]) => {
+    try {
+      localStorage.setItem(`${SKIPPED_TASKS_KEY}_${uid}`, JSON.stringify({
+        date: getTodayKey(),
+        taskIds: ids,
+      }));
+    } catch (e) {
+      console.error('Error saving skipped tasks:', e);
+    }
+  }, []);
+
+  const skipTaskForToday = useCallback((taskId: string) => {
+    if (!user) return;
+    setSkippedTaskIds(prev => {
+      if (prev.includes(taskId)) return prev;
+      const next = [...prev, taskId];
+      saveSkippedToStorage(user.uid, next);
+      return next;
+    });
+  }, [user, saveSkippedToStorage]);
+
+  const unskipTask = useCallback((taskId: string) => {
+    if (!user) return;
+    setSkippedTaskIds(prev => {
+      const next = prev.filter(id => id !== taskId);
+      saveSkippedToStorage(user.uid, next);
+      return next;
+    });
+  }, [user, saveSkippedToStorage]);
+
+  const resetSkippedTasks = useCallback(() => {
+    if (!user) return;
+    setSkippedTaskIds([]);
+    saveSkippedToStorage(user.uid, []);
+  }, [user, saveSkippedToStorage]);
 
   const fetchData = useCallback(async () => {
     if (!user) return;
@@ -49,7 +119,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       setSettings({
         priority: { ...DEFAULT_PRIORITY_SETTINGS, ...(fetchedSettings?.priority || {}) },
         darkMode: Boolean(fetchedSettings?.darkMode),
-        showScores: Boolean(fetchedSettings?.showScores)
+        showScores: Boolean(fetchedSettings?.showScores),
+        maxHomeTasks: typeof fetchedSettings?.maxHomeTasks === 'number' ? fetchedSettings.maxHomeTasks : 3,
       });
     } catch (error) {
       console.error('Fetch error:', error);
@@ -89,7 +160,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         appreciation: taskData.appreciation || 5,
         completed: false,
         completedAt: null,
-        createdAt: now,
+        createdAt: taskData.createdAt || now,
         updatedAt: now,
       });
     }
@@ -121,7 +192,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       ...newSettings,
       priority: { ...DEFAULT_PRIORITY_SETTINGS, ...(newSettings.priority || {}) },
       darkMode: Boolean(newSettings.darkMode),
-      showScores: Boolean(newSettings.showScores)
+      showScores: Boolean(newSettings.showScores),
+      maxHomeTasks: typeof newSettings.maxHomeTasks === 'number' && newSettings.maxHomeTasks > 0 ? newSettings.maxHomeTasks : 3,
     };
     setSettings(normalized);
     await dataProvider.saveSettings(user.uid, normalized);
@@ -134,10 +206,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const defaultSettings: UserSettings = { 
       priority: DEFAULT_PRIORITY_SETTINGS, 
       darkMode: Boolean(settings.darkMode), 
-      showScores: Boolean(settings.showScores) 
+      showScores: Boolean(settings.showScores),
+      maxHomeTasks: 3,
     };
     setSettings(defaultSettings);
     await dataProvider.saveSettings(user.uid, defaultSettings);
+    resetSkippedTasks();
     await fetchData();
   };
 
@@ -154,6 +228,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     actionableTasks,
     settings,
     loading,
+    skippedTaskIds,
+    skipTaskForToday,
+    unskipTask,
+    resetSkippedTasks,
     saveTask,
     toggleTask,
     deleteTask,
@@ -161,7 +239,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     resetAll,
     clearHistory,
     fetchData
-  }), [user, tasks, actionableTasks, settings, loading, saveTask, toggleTask, deleteTask, updateSettings, resetAll, clearHistory, fetchData]);
+  }), [user, tasks, actionableTasks, settings, loading, skippedTaskIds, skipTaskForToday, unskipTask, resetSkippedTasks, saveTask, toggleTask, deleteTask, updateSettings, resetAll, clearHistory, fetchData]);
 
   return (
     <DataContext.Provider value={value}>

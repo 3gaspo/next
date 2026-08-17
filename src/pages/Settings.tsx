@@ -18,7 +18,8 @@ import {
   User, 
   Heart,
   ChevronRight,
-  ShieldCheck
+  ShieldCheck,
+  ListOrdered
 } from 'lucide-react';
 
 const SUPPORT_URL = "https://ko-fi.com/3gaspo";
@@ -134,6 +135,33 @@ export default function Settings() {
             <div className={`w-4 h-4 rounded-full transition-transform ${isScoresEnabled ? 'translate-x-6 bg-white dark:bg-black' : 'bg-white dark:bg-zinc-400'}`} />
           </div>
         </button>
+
+        <div className="w-full flex items-center justify-between bg-white dark:bg-zinc-900 p-6 rounded-[24px] shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 bg-zinc-100 dark:bg-zinc-800 rounded-2xl flex items-center justify-center text-zinc-500">
+              <ListOrdered size={20} />
+            </div>
+            <div className="text-left">
+              <span className="font-bold block text-zinc-900 dark:text-zinc-100">Tasks on Home</span>
+              <span className="text-xs text-zinc-400 font-medium">Number of top priority tasks displayed</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <input 
+              type="number" 
+              min="1"
+              max="50"
+              value={settings.maxHomeTasks ?? 3} 
+              onChange={e => {
+                const val = parseInt(e.target.value, 10);
+                if (!isNaN(val) && val > 0) {
+                  updateSettings({ ...settings, maxHomeTasks: val });
+                }
+              }}
+              className="w-16 bg-zinc-50 dark:bg-zinc-800 border-none rounded-xl text-center font-black focus:ring-1 focus:ring-black dark:focus:ring-white transition-all text-zinc-900 dark:text-zinc-100 p-2"
+            />
+          </div>
+        </div>
       </section>
 
       {/* Account */}
