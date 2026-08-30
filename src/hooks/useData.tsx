@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { isToday, parseISO } from 'date-fns';
 import { Task, UserSettings, DEFAULT_PRIORITY_SETTINGS } from '../types';
 import { authProvider, dataProvider } from '../services/providerFactory';
 import { getLeafTasks } from '../lib/tree';
@@ -133,9 +134,20 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     fetchData();
   }, [fetchData]);
 
+function isCompletedToday(task: Task): boolean {
+  if (!task.completed || !task.completedAt) return false;
+  try {
+    return isToday(parseISO(task.completedAt));
+  } catch {
+    return false;
+  }
+}
+
   const actionableTasks = useMemo(() => {
     const leaves = getLeafTasks(tasks);
-    const sorted = sortTasksByPriority(leaves, settings.priority);
+    // Include all active tasks, plus tasks completed today (they disappear the next day)
+    const validLeaves = leaves.filter(t => !t.completed || isCompletedToday(t));
+    const sorted = sortTasksByPriority(validLeaves, settings.priority);
     // Move completed tasks to the bottom
     return [
       ...sorted.filter(t => !t.completed),

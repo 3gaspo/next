@@ -265,7 +265,7 @@ export default function Settings() {
             }}
           />
           <div>
-            <p className="font-bold">Next — version 0.0.0</p>
+            <p className="font-bold">Next — version 0.1.0</p>
             <p className="text-sm font-medium">GASPARD BERTHELIER</p>
             <p className="text-xs">gberthelier.projet@gmail.com</p>
           </div>

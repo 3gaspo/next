@@ -8,30 +8,42 @@ import {
   ChevronRight, 
   ChevronLeft, 
   Folder, 
-  FileText, 
+  Leaf, 
   Plus, 
   Trash2, 
   Edit2, 
   CheckCircle2, 
-  Circle 
+  Circle,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function Database() {
   const { user, tasks, settings, saveTask, toggleTask, deleteTask, loading } = useData();
   const [currentParentId, setCurrentParentId] = useState<string | null>(null);
+  const [showDone, setShowDone] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
+  const allLevelTasks = useMemo(() => {
+    return getChildren(currentParentId, tasks);
+  }, [currentParentId, tasks]);
+
+  const doneCountAtLevel = useMemo(() => {
+    return allLevelTasks.filter(t => t.completed).length;
+  }, [allLevelTasks]);
+
   const currentLevelTasks = useMemo(() => {
-    return getChildren(currentParentId, tasks).sort((a, b) => {
+    const filtered = showDone ? allLevelTasks : allLevelTasks.filter(t => !t.completed);
+    return filtered.sort((a, b) => {
       const aIsFolder = hasChildren(a.id, tasks);
       const bIsFolder = hasChildren(b.id, tasks);
       if (aIsFolder !== bIsFolder) return aIsFolder ? -1 : 1;
       if (a.completed !== b.completed) return a.completed ? 1 : -1;
       return a.name.localeCompare(b.name);
     });
-  }, [currentParentId, tasks]);
+  }, [allLevelTasks, showDone, tasks]);
 
   const breadcrumbs = useMemo(() => {
     if (!currentParentId) return [];
@@ -74,8 +86,41 @@ export default function Database() {
 
   return (
     <div className="px-6 pt-12 pb-24 max-w-lg mx-auto">
-      <header className="mb-10 space-y-4">
-        <h1 className="text-4xl font-bold tracking-tight">Database</h1>
+      <header className="mb-8 space-y-4">
+        <div className="flex items-center justify-between gap-4">
+          <h1 className="text-4xl font-bold tracking-tight">Database</h1>
+          <button
+            type="button"
+            onClick={() => setShowDone(prev => !prev)}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+              showDone
+                ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-sm'
+                : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
+            }`}
+            title={showDone ? 'Hide done tasks' : 'Show done tasks'}
+          >
+            {showDone ? (
+              <>
+                <EyeOff size={14} />
+                <span>Hide done</span>
+              </>
+            ) : (
+              <>
+                <Eye size={14} />
+                <span>Show done</span>
+              </>
+            )}
+            {doneCountAtLevel > 0 && (
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                showDone 
+                  ? 'bg-zinc-700 text-zinc-200 dark:bg-zinc-200 dark:text-zinc-800' 
+                  : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300'
+              }`}>
+                {doneCountAtLevel}
+              </span>
+            )}
+          </button>
+        </div>
         
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
           <button 
@@ -141,14 +186,14 @@ export default function Database() {
                 className="group w-full flex items-center justify-between gap-4 p-6 bg-white dark:bg-zinc-900 rounded-[24px] shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-[0.99]"
               >
                 <div className="flex items-center gap-4 flex-1 min-w-0">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${isFolder ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300' : 'bg-transparent text-zinc-400'}`}>
-                    {isFolder ? <Folder size={20} fill="currentColor" opacity={0.2} /> : <FileText size={20} />}
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${isFolder ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300' : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400'}`}>
+                    {isFolder ? <Folder size={20} fill="currentColor" opacity={0.2} /> : <Leaf size={20} />}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className={`font-bold tracking-tight truncate ${task.completed ? 'text-zinc-400 line-through' : 'text-zinc-900 dark:text-zinc-100'}`}>
+                  <div className="flex-1 min-w-0 pr-2">
+                    <h3 className={`font-bold tracking-tight break-words text-base leading-snug ${task.completed ? 'text-zinc-400 line-through' : 'text-zinc-900 dark:text-zinc-100'}`}>
                       {task.name}
                     </h3>
-                    <p className="text-[10px] uppercase font-bold tracking-widest text-zinc-400 truncate">
+                    <p className="text-[10px] uppercase font-bold tracking-widest text-zinc-400 mt-0.5">
                       {isFolder 
                         ? `${completed} / ${total} tasks` + (settings.showScores && itemScore !== null ? ` • Category Score: ${itemScore}` : '')
                         : 'Leaf Task'}
@@ -163,31 +208,31 @@ export default function Database() {
                     </span>
                   )}
                   
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-1 opacity-80 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                     {!isFolder && (
                       <button 
                         onClick={(e) => handleToggle(task.id, e)}
-                        className="p-2 text-zinc-300 hover:text-green-500 transition-colors"
+                        className="p-2 text-zinc-300 hover:text-green-500 transition-colors cursor-pointer"
                       >
                         {task.completed ? <CheckCircle2 size={24} className="text-green-500" /> : <Circle size={24} />}
                       </button>
                     )}
                     <button 
                       onClick={(e) => handleAddChild(task, e)}
-                      className="p-2 text-zinc-300 hover:text-zinc-600 dark:hover:text-zinc-100 transition-colors"
+                      className="p-2 text-zinc-300 hover:text-zinc-600 dark:hover:text-zinc-100 transition-colors cursor-pointer"
                       title="Add Child"
                     >
                       <Plus size={20} />
                     </button>
                     <button 
                       onClick={(e) => handleEdit(task, e)}
-                      className="p-2 text-zinc-300 hover:text-zinc-600 dark:hover:text-zinc-100 transition-colors"
+                      className="p-2 text-zinc-300 hover:text-zinc-600 dark:hover:text-zinc-100 transition-colors cursor-pointer"
                     >
                       <Edit2 size={18} />
                     </button>
                     <button 
                       onClick={(e) => handleDelete(task.id, e)}
-                      className="p-2 text-zinc-300 hover:text-red-500 transition-colors"
+                      className="p-2 text-zinc-300 hover:text-red-500 transition-colors cursor-pointer"
                     >
                       <Trash2 size={18} />
                     </button>
@@ -200,8 +245,22 @@ export default function Database() {
         </AnimatePresence>
 
         {currentLevelTasks.length === 0 && !loading && (
-          <div className="py-20 text-center text-zinc-400 font-medium">
-            This folder is empty
+          <div className="py-20 text-center space-y-3">
+            {doneCountAtLevel > 0 && !showDone ? (
+              <>
+                <p className="text-zinc-400 font-medium">All tasks in this view are completed</p>
+                <button
+                  type="button"
+                  onClick={() => setShowDone(true)}
+                  className="text-xs font-bold text-zinc-900 dark:text-zinc-100 underline hover:opacity-80 transition-opacity cursor-pointer inline-flex items-center gap-1.5"
+                >
+                  <Eye size={13} />
+                  Show {doneCountAtLevel} done {doneCountAtLevel === 1 ? 'task' : 'tasks'}
+                </button>
+              </>
+            ) : (
+              <p className="text-zinc-400 font-medium">This folder is empty</p>
+            )}
           </div>
         )}
       </div>

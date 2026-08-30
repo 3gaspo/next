@@ -44,13 +44,17 @@ export default function StatsChart({ data }: StatsChartProps) {
             tick={{ fontSize: 10, fontWeight: 600, fill: '#A1A1AA' }}
           />
           <Tooltip 
-            cursor={{ fill: 'rgba(0,0,0,0.05)' }}
-            contentStyle={{ 
-              borderRadius: '16px', 
-              border: 'none', 
-              boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
-              fontWeight: 'bold',
-              fontSize: '12px'
+            cursor={{ fill: 'currentColor', opacity: 0.05 }}
+            content={({ active, payload, label }) => {
+              if (active && payload && payload.length) {
+                return (
+                  <div className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-3 py-2 rounded-xl shadow-lg text-xs font-bold">
+                    <p className="opacity-70 text-[10px] uppercase tracking-wider">{label}</p>
+                    <p className="text-sm">{payload[0].value} {payload[0].value === 1 ? 'task' : 'tasks'} completed</p>
+                  </div>
+                );
+              }
+              return null;
             }}
           />
           <Bar 
