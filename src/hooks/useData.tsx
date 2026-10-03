@@ -160,16 +160,24 @@ function isCompletedToday(task: Task): boolean {
     const now = new Date().toISOString();
     if ('id' in taskData && taskData.id) {
       const { id, ...updates } = taskData;
+      if (updates.isFolder) {
+        updates.importance = 0;
+        updates.duration = 0;
+        updates.effort = 0;
+        updates.appreciation = 0;
+      }
       await dataProvider.updateTask(user.uid, id, { ...updates, updatedAt: now });
     } else {
+      const isFolder = Boolean(taskData.isFolder);
       await dataProvider.addTask(user.uid, {
         name: taskData.name || '',
         parentId: taskData.parentId || null,
+        isFolder,
         deadline: taskData.deadline || null,
-        importance: taskData.importance || 5,
-        duration: taskData.duration || 30,
-        effort: taskData.effort || 3,
-        appreciation: taskData.appreciation || 5,
+        importance: isFolder ? 0 : (taskData.importance ?? 5),
+        duration: isFolder ? 0 : (taskData.duration ?? 30),
+        effort: isFolder ? 0 : (taskData.effort ?? 3),
+        appreciation: isFolder ? 0 : (taskData.appreciation ?? 5),
         completed: false,
         completedAt: null,
         createdAt: taskData.createdAt || now,

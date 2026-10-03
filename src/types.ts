@@ -2,6 +2,7 @@ export interface Task {
   id: string;
   parentId: string | null;
   name: string;
+  isFolder?: boolean;
   deadline: string | null;
   createdAt: string;
   updatedAt: string;
