@@ -123,7 +123,7 @@ export default function TaskModal({ isOpen, onClose, onSave, task, parentId, ini
                   }`}
                 >
                   <Leaf size={14} />
-                  <span>Actionable Task</span>
+                  <span>Task</span>
                 </button>
                 <button
                   type="button"
@@ -135,22 +135,13 @@ export default function TaskModal({ isOpen, onClose, onSave, task, parentId, ini
                   }`}
                 >
                   <Folder size={14} />
-                  <span>Folder / Project</span>
+                  <span>Folder</span>
                 </button>
               </div>
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 space-y-6">
-            {isFolder && (
-              <div className="p-3.5 bg-zinc-50 dark:bg-zinc-800/40 rounded-2xl border border-zinc-100 dark:border-zinc-800/80 text-xs text-zinc-500 flex items-start gap-2.5">
-                <Folder size={15} className="text-zinc-400 shrink-0 mt-0.5" />
-                <span>
-                  Folders organize tasks. Added date and deadline are purely informative; only leaf tasks inside folders have priority scores and appear on Today.
-                </span>
-              </div>
-            )}
-
             <div className="space-y-2">
               <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
                 {isFolder ? 'Folder Name' : 'Task Name'}
@@ -160,7 +151,7 @@ export default function TaskModal({ isOpen, onClose, onSave, task, parentId, ini
                 required
                 value={name}
                 onChange={e => setName(e.target.value)}
-                placeholder={isFolder ? 'e.g. Work, Personal, Marketing...' : 'What needs to be done?'}
+                placeholder={isFolder ? 'Folder name' : 'What needs to be done?'}
                 className="w-full text-2xl font-bold bg-transparent border-none focus:ring-0 p-0 placeholder:text-zinc-200 dark:placeholder:text-zinc-800"
               />
             </div>
@@ -180,7 +171,7 @@ export default function TaskModal({ isOpen, onClose, onSave, task, parentId, ini
 
               <div className="space-y-2">
                 <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-                  <Calendar size={12} /> {isFolder ? 'Deadline (Informative)' : 'Deadline'}
+                  <Calendar size={12} /> Deadline
                 </label>
                 <input
                   type="date"

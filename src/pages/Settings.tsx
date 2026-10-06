@@ -126,10 +126,7 @@ export default function Settings() {
             <div className="w-10 h-10 bg-zinc-100 dark:bg-zinc-800 rounded-2xl flex items-center justify-center text-zinc-500">
               {isScoresEnabled ? <Eye size={20} /> : <EyeOff size={20} />}
             </div>
-            <div className="text-left">
-              <span className="font-bold block text-zinc-900 dark:text-zinc-100">Show Priority Scores</span>
-              <span className="text-xs text-zinc-400 font-medium">Display overall, category, and task scores</span>
-            </div>
+            <span className="font-bold block text-zinc-900 dark:text-zinc-100">Show Priority Scores</span>
           </div>
           <div className={`w-12 h-6 rounded-full p-1 transition-colors ${isScoresEnabled ? 'bg-black dark:bg-white' : 'bg-zinc-200 dark:bg-zinc-800'}`}>
             <div className={`w-4 h-4 rounded-full transition-transform ${isScoresEnabled ? 'translate-x-6 bg-white dark:bg-black' : 'bg-white dark:bg-zinc-400'}`} />
@@ -141,10 +138,7 @@ export default function Settings() {
             <div className="w-10 h-10 bg-zinc-100 dark:bg-zinc-800 rounded-2xl flex items-center justify-center text-zinc-500">
               <ListOrdered size={20} />
             </div>
-            <div className="text-left">
-              <span className="font-bold block text-zinc-900 dark:text-zinc-100">Tasks on Home</span>
-              <span className="text-xs text-zinc-400 font-medium">Number of top priority tasks displayed</span>
-            </div>
+            <span className="font-bold block text-zinc-900 dark:text-zinc-100">Tasks on Home</span>
           </div>
           <div className="flex items-center gap-2">
             <input 
@@ -265,7 +259,7 @@ export default function Settings() {
             }}
           />
           <div>
-            <p className="font-bold">Next — version 0.1.0</p>
+            <p className="font-bold">Next — version 0.1.2</p>
             <p className="text-sm font-medium">GASPARD BERTHELIER</p>
             <p className="text-xs">gberthelier.projet@gmail.com</p>
           </div>

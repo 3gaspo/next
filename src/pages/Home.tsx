@@ -72,9 +72,7 @@ export default function Home() {
         <div>
           <h1 className="text-4xl font-bold tracking-tight mb-1">Today</h1>
           <p className="text-zinc-400 font-medium">
-            {availableUncompletedTasks.length > 0 
-              ? `Top ${Math.min(maxTasks, availableUncompletedTasks.length)} of ${availableUncompletedTasks.length} actionable tasks`
-              : '0 actionable tasks'}
+            {availableUncompletedTasks.length} {availableUncompletedTasks.length === 1 ? 'task' : 'tasks'}
           </p>
         </div>
         {isScoresEnabled && (
@@ -127,7 +125,7 @@ export default function Home() {
             <p className="text-zinc-400 font-medium">
               {skippedTaskIds.length > 0 
                 ? 'All other tasks are skipped for today.' 
-                : 'All caught up! Create a new project in the Database page to get started.'}
+                : 'All caught up!'}
             </p>
           </motion.div>
         )}

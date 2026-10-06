@@ -55,13 +55,8 @@ export default function Auth() {
           {/* Headline */}
           <div className="space-y-2 text-center">
             <h1 className="text-3xl font-bold tracking-tight">
-              {isLogin ? 'Welcome back' : 'Get started'}
+              {isLogin ? 'Sign In' : 'Sign Up'}
             </h1>
-            <p className="text-sm text-zinc-400 dark:text-zinc-500 font-medium">
-              {isLogin 
-                ? 'Sign in to access your priority task matrix.' 
-                : 'Create an account to start prioritizing deterministically.'}
-            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">

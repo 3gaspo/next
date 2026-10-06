@@ -285,9 +285,6 @@ export default function Database() {
                   <p className="text-zinc-700 dark:text-zinc-300 font-bold">
                     {currentParentId ? 'This folder is empty' : 'No tasks or folders yet'}
                   </p>
-                  <p className="text-zinc-400 text-xs max-w-xs mx-auto">
-                    Folders organize your work. Add a folder to group related goals, or add actionable leaf tasks directly.
-                  </p>
                 </div>
                 <div className="flex items-center justify-center gap-3 pt-2">
                   <button
