@@ -80,7 +80,7 @@ export default function Settings() {
           <h2 className="ui-section-title text-[10px] font-black uppercase tracking-widest text-ui-ink/40">Priority Engine</h2>
           <button 
             onClick={() => updateSettings({ ...settings, priority: DEFAULT_PRIORITY_SETTINGS })}
-            className="text-[10px] font-black uppercase tracking-widest text-ui-ink/40 hover:text-black dark:hover:text-white"
+            className="ui-compact-control text-[10px] font-black uppercase tracking-widest text-ui-ink/40 hover:text-black dark:hover:text-white"
           >
             Reset
           </button>

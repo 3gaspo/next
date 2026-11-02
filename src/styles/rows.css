@@ -5,7 +5,7 @@
 .task-card-name { grid-column: 1; grid-row: var(--task-main-row); margin: 0; }
 .task-card-meta { grid-column: 1; grid-row: var(--task-meta-row); min-width: 0; margin: 0; }
 .task-card-controls { display: contents; }
-.task-card-toggle { grid-column: 2; grid-row: var(--task-main-row); justify-self: end; width: 32px; height: 32px; }
+.task-card-toggle { grid-column: 2; grid-row: var(--task-main-row); justify-self: end; display: flex; align-items: center; justify-content: center; width: 32px; height: 44px; }
 .task-card-actions { grid-column: 2; grid-row: var(--task-meta-row); display: grid; grid-template-columns: 32px 32px; align-items: center; }
 .task-card-actions > button:last-child { grid-column: 2; }
 .task-card-score { grid-column: 1 / -1; justify-self: end; max-width: 100%; overflow-wrap: anywhere; }
