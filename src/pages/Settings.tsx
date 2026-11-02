@@ -1,3 +1,6 @@
+import { ValidatedForm } from '../components/ValidatedForm';
+import { SettingsToggle } from '../components/SettingsSwitch';
+import { PageHeader } from '../components/PageHeader';
 import React, { useState } from 'react';
 import { useData } from '../hooks/useData';
 import { authProvider, firebaseReady } from '../services/providerFactory';
@@ -68,21 +71,16 @@ export default function Settings() {
   };
 
   return (
-    <div className="px-6 pt-12 pb-24 max-w-lg mx-auto space-y-10">
-      <header className="flex items-center justify-between">
-        <h1 className="text-4xl font-bold tracking-tight">Settings</h1>
-        {!firebaseReady && (
-          <span className="text-[10px] font-black uppercase tracking-widest bg-emerald-100 text-emerald-600 px-3 py-1.5 rounded-full">Dev Mode</span>
-        )}
-      </header>
+    <div className="app-page space-y-6">
+      <PageHeader title="Settings" devMode={!firebaseReady} />
 
       {/* Priority Settings */}
-      <section className="bg-black/5 dark:bg-white/5 p-8 rounded-[32px] space-y-6">
+      <section className="ui-section-card bg-ui-section p-8 rounded-[32px] space-y-6">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Priority Engine</h2>
+          <h2 className="ui-section-title text-[10px] font-black uppercase tracking-widest text-ui-ink/40">Priority Engine</h2>
           <button 
             onClick={() => updateSettings({ ...settings, priority: DEFAULT_PRIORITY_SETTINGS })}
-            className="text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-black dark:hover:text-white"
+            className="text-[10px] font-black uppercase tracking-widest text-ui-ink/40 hover:text-black dark:hover:text-white"
           >
             Reset
           </button>
@@ -98,47 +96,19 @@ export default function Settings() {
       </section>
 
       {/* Appearance & Display */}
-      <section className="bg-black/5 dark:bg-white/5 p-8 rounded-[32px] space-y-4">
-        <h2 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Appearance & Display</h2>
+      <section className="ui-section-card bg-ui-section p-8 rounded-[32px] space-y-4">
+        <h2 className="ui-section-title text-[10px] font-black uppercase tracking-widest text-ui-ink/40">Appearance</h2>
         
-        <button 
-          type="button"
-          onClick={toggleDarkMode}
-          className="w-full flex items-center justify-between bg-white dark:bg-zinc-900 p-6 rounded-[24px] shadow-sm active:scale-[0.99] transition-all cursor-pointer"
-        >
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-zinc-100 dark:bg-zinc-800 rounded-2xl flex items-center justify-center text-zinc-500">
-              <Moon size={20} />
-            </div>
-            <span className="font-bold text-zinc-900 dark:text-zinc-100">Dark Mode</span>
-          </div>
-          <div className={`w-12 h-6 rounded-full p-1 transition-colors ${isDarkMode ? 'bg-black dark:bg-white' : 'bg-zinc-200 dark:bg-zinc-800'}`}>
-            <div className={`w-4 h-4 rounded-full transition-transform ${isDarkMode ? 'translate-x-6 bg-white dark:bg-black' : 'bg-white dark:bg-zinc-400'}`} />
-          </div>
-        </button>
+        <SettingsToggle checked={isDarkMode} onClick={toggleDarkMode} label="Dark Mode" icon={<Moon size={20} />} />
 
-        <button 
-          type="button"
-          onClick={toggleShowScores}
-          className="w-full flex items-center justify-between bg-white dark:bg-zinc-900 p-6 rounded-[24px] shadow-sm active:scale-[0.99] transition-all cursor-pointer"
-        >
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-zinc-100 dark:bg-zinc-800 rounded-2xl flex items-center justify-center text-zinc-500">
-              {isScoresEnabled ? <Eye size={20} /> : <EyeOff size={20} />}
-            </div>
-            <span className="font-bold block text-zinc-900 dark:text-zinc-100">Show Priority Scores</span>
-          </div>
-          <div className={`w-12 h-6 rounded-full p-1 transition-colors ${isScoresEnabled ? 'bg-black dark:bg-white' : 'bg-zinc-200 dark:bg-zinc-800'}`}>
-            <div className={`w-4 h-4 rounded-full transition-transform ${isScoresEnabled ? 'translate-x-6 bg-white dark:bg-black' : 'bg-white dark:bg-zinc-400'}`} />
-          </div>
-        </button>
+        <SettingsToggle checked={isScoresEnabled} onClick={toggleShowScores} label="Show Priority Scores" icon={isScoresEnabled ? <Eye size={20} /> : <EyeOff size={20} />} />
 
-        <div className="w-full flex items-center justify-between bg-white dark:bg-zinc-900 p-6 rounded-[24px] shadow-sm">
+        <div className="ui-setting-row bg-ui-surface">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-zinc-100 dark:bg-zinc-800 rounded-2xl flex items-center justify-center text-zinc-500">
+            <div className="ui-setting-icon">
               <ListOrdered size={20} />
             </div>
-            <span className="font-bold block text-zinc-900 dark:text-zinc-100">Tasks on Home</span>
+            <span className="ui-setting-label">Tasks on Home</span>
           </div>
           <div className="flex items-center gap-2">
             <input 
@@ -152,24 +122,24 @@ export default function Settings() {
                   updateSettings({ ...settings, maxHomeTasks: val });
                 }
               }}
-              className="w-16 bg-zinc-50 dark:bg-zinc-800 border-none rounded-xl text-center font-black focus:ring-1 focus:ring-black dark:focus:ring-white transition-all text-zinc-900 dark:text-zinc-100 p-2"
+              className="ui-field w-16 bg-ui-section border-none rounded-xl text-center font-black focus:ring-1 focus:ring-black dark:focus:ring-white transition-all text-ui-text p-2"
             />
           </div>
         </div>
       </section>
 
       {/* Account */}
-      <section className="bg-black/5 dark:bg-white/5 p-8 rounded-[32px] space-y-6">
-        <h2 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Account</h2>
+      <section className="ui-section-card bg-ui-section p-8 rounded-[32px] space-y-6">
+        <h2 className="ui-section-title text-[10px] font-black uppercase tracking-widest text-ui-ink/40">Account</h2>
         {user ? (
           <div className="space-y-4">
-            <div className="bg-white dark:bg-zinc-900 p-6 rounded-[24px] shadow-sm flex items-center gap-4">
-              <div className="w-12 h-12 bg-black dark:bg-white text-white dark:text-black rounded-full flex items-center justify-center font-black">
+            <div className="bg-ui-surface p-6 rounded-[24px] shadow-sm flex items-center gap-4">
+              <div className="w-12 h-12 bg-ui-primary text-ui-primary-text rounded-full flex items-center justify-center font-black">
                 {user.email?.[0].toUpperCase() || <User size={24} />}
               </div>
               <div>
-                <p className="text-[10px] uppercase font-bold tracking-widest text-zinc-400 mb-0.5">Signed in as</p>
-                <p className="font-bold truncate max-w-[200px] text-zinc-900 dark:text-zinc-100">{user.email}</p>
+                <p className="ui-meta text-[10px] uppercase font-bold tracking-widest text-ui-ink/40 mb-0.5">Signed in as</p>
+                <p className="font-bold truncate max-w-[200px] text-ui-text">{user.email}</p>
               </div>
             </div>
             <SettingsAction 
@@ -179,42 +149,42 @@ export default function Settings() {
             />
           </div>
         ) : (
-          <form onSubmit={handleAuth} className="space-y-4">
-            <div className="space-y-4 bg-white dark:bg-zinc-900 p-6 rounded-[24px] shadow-sm">
-              <h3 className="font-bold text-lg">{authForm.isLogin ? 'Sign in' : 'Create account'}</h3>
+          <ValidatedForm onSubmit={handleAuth} className="space-y-4">
+            <div className="space-y-4 bg-ui-surface p-6 rounded-[24px] shadow-sm">
+              <h3 className="ui-item-title font-bold text-lg">{authForm.isLogin ? 'Sign in' : 'Create account'}</h3>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-ui-ink/40" size={18} />
                 <input 
                   type="email" 
                   value={authForm.email} 
                   required
                   onChange={e => setAuthForm(f => ({ ...f, email: e.target.value }))}
                   placeholder="Email address"
-                  className="w-full h-14 pl-12 pr-4 bg-zinc-100 dark:bg-zinc-800 border-none rounded-2xl focus:ring-2 focus:ring-black dark:focus:ring-white transition-all"
+                  className="ui-field ui-field-leading w-full h-14 pl-12 pr-4 bg-ui-section border-none rounded-2xl focus:ring-2 focus:ring-black dark:focus:ring-white transition-all"
                 />
               </div>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-ui-ink/40" size={18} />
                 <input 
                   type={authForm.showPass ? 'text' : 'password'} 
                   value={authForm.password} 
                   required
                   onChange={e => setAuthForm(f => ({ ...f, password: e.target.value }))}
                   placeholder="Password"
-                  className="w-full h-14 pl-12 pr-12 bg-zinc-100 dark:bg-zinc-800 border-none rounded-2xl focus:ring-2 focus:ring-black dark:focus:ring-white transition-all"
+                  className="ui-field ui-field-leading ui-field-trailing w-full h-14 pl-12 pr-12 bg-ui-section border-none rounded-2xl focus:ring-2 focus:ring-black dark:focus:ring-white transition-all"
                 />
                 <button 
                   type="button"
                   onClick={() => setAuthForm(f => ({ ...f, showPass: !f.showPass }))}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-ui-ink/40 hover:text-ui-ink/60"
                 >
                   {authForm.showPass ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-              {authForm.error && <p className="text-red-500 text-xs font-bold px-2">{authForm.error}</p>}
+              {authForm.error && <p role="alert" className="ui-error text-red-500 text-xs font-bold px-2">{authForm.error}</p>}
               <button 
                 type="submit"
-                className="w-full h-14 bg-black dark:bg-white text-white dark:text-black rounded-2xl font-bold active:scale-[0.98] transition-all"
+                className="ui-button ui-button-primary w-full h-14 bg-ui-primary text-ui-primary-text rounded-2xl font-bold transition-all"
               >
                 {authForm.isLogin ? 'Sign In' : 'Create Account'}
               </button>
@@ -222,17 +192,17 @@ export default function Settings() {
             <button 
               type="button"
               onClick={() => setAuthForm(f => ({ ...f, isLogin: !f.isLogin }))}
-              className="w-full text-center text-sm font-bold text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors"
+              className="w-full text-center text-sm font-bold text-ui-ink/40 hover:text-ui-ink/60 dark:hover:text-ui-ink/70 transition-colors"
             >
               {authForm.isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
             </button>
-          </form>
+          </ValidatedForm>
         )}
       </section>
 
       {/* Actions */}
-      <section className="bg-black/5 dark:bg-white/5 p-8 rounded-[32px] space-y-4">
-        <h2 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Actions</h2>
+      <section className="ui-section-card bg-ui-section p-8 rounded-[32px] space-y-4">
+        <h2 className="ui-section-title text-[10px] font-black uppercase tracking-widest text-ui-ink/40">Actions</h2>
         
         <SettingsAction 
           icon={<Download size={20} />} 
@@ -242,7 +212,7 @@ export default function Settings() {
         
         <SettingsAction 
           icon={<RotateCcw size={20} />} 
-          label="Reset Data" 
+          label="Reset data"
           destructive
           onClick={() => setIsResetModalOpen(true)}
         />
@@ -269,7 +239,7 @@ export default function Settings() {
           href={SUPPORT_URL} 
           target="_blank" 
           rel="noopener noreferrer"
-          className="flex items-center gap-2 px-6 h-12 bg-black dark:bg-zinc-100 text-white dark:text-black rounded-full font-bold shadow-lg active:scale-95 transition-all"
+          className="flex items-center gap-2 px-6 h-12 bg-ui-primary text-ui-primary-text rounded-full font-bold shadow-lg transition-all"
         >
           <Heart size={16} fill="currentColor" />
           Support the project
@@ -291,13 +261,13 @@ export default function Settings() {
 
 function WeightInput({ label, value, onChange }: { label: string; value: number; onChange: (v: string) => void }) {
   return (
-    <div className="flex items-center justify-between bg-white dark:bg-zinc-900 p-6 rounded-[24px] shadow-sm">
-      <span className="font-bold text-zinc-600 dark:text-zinc-300">{label}</span>
+    <div className="ui-setting-row flex items-center justify-between bg-ui-surface p-6 rounded-[24px] shadow-sm">
+      <span className="font-bold text-ui-ink/60">{label}</span>
       <input 
         type="number" 
         value={value} 
         onChange={e => onChange(e.target.value)}
-        className="w-20 bg-zinc-50 dark:bg-zinc-800 border-none rounded-xl text-right font-black focus:ring-1 focus:ring-black dark:focus:ring-white transition-all text-zinc-900 dark:text-zinc-100"
+        className="ui-field w-20 bg-ui-section border-none rounded-xl text-right font-black focus:ring-1 focus:ring-black dark:focus:ring-white transition-all text-ui-text"
       />
     </div>
   );
@@ -307,15 +277,15 @@ function SettingsAction({ icon, label, onClick, destructive }: { icon: React.Rea
   return (
     <button 
       onClick={onClick}
-      className={`w-full flex items-center justify-between p-6 rounded-[24px] transition-all bg-white dark:bg-zinc-900 shadow-sm active:scale-[0.99] group ${destructive ? 'hover:bg-red-50 dark:hover:bg-red-950/20' : ''}`}
+      className={"ui-setting-action " + (`w-full flex items-center justify-between p-6 rounded-[24px] transition-all bg-ui-surface shadow-sm group ${destructive ? 'hover:bg-red-50 dark:hover:bg-red-950/20' : ''}`)}
     >
       <div className="flex items-center gap-4">
-        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-colors ${destructive ? 'bg-red-50 dark:bg-red-950/30 text-red-500' : 'bg-zinc-50 dark:bg-zinc-800 text-zinc-500'}`}>
+        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-colors ${destructive ? 'bg-red-50 dark:bg-red-950/30 text-red-500' : 'bg-ui-section text-ui-ink/40'}`}>
           {icon}
         </div>
         <span className={`font-bold transition-colors ${destructive ? 'text-red-500' : ''}`}>{label}</span>
       </div>
-      <ChevronRight size={20} className={destructive ? 'text-red-300' : 'text-zinc-300'} />
+      <ChevronRight size={20} className={destructive ? 'text-red-300' : 'text-ui-ink/30'} />
     </button>
   );
 }

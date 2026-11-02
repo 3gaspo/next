@@ -1,3 +1,5 @@
+import { formatWeekday, formatMonthName } from '@3gaspo/app-ui/formats';
+import { StateFeedback } from '../components/StateFeedback';
 import React, { useState, useMemo } from 'react';
 import { useData } from '../hooks/useData';
 import StatsChart from '../components/StatsChart';
@@ -61,7 +63,7 @@ export default function Stats() {
       periodStart = subDays(now, 6);
       const days = eachDayOfInterval({ start: periodStart, end: now });
       chartData = days.map(day => ({
-        date: format(day, 'EEE'),
+        date: formatWeekday(day),
         count: completedTasks.filter(t => isSameDay(parseISO(t.completedAt!), day)).length
       }));
     } else if (period === 'monthly') {
@@ -75,7 +77,7 @@ export default function Stats() {
       periodStart = subYears(now, 1);
       const months = eachMonthOfInterval({ start: periodStart, end: now });
       chartData = months.map(month => ({
-        date: format(month, 'MMM'),
+        date: formatMonthName(month),
         count: completedTasks.filter(t => isSameMonth(parseISO(t.completedAt!), month)).length
       }));
     }
@@ -92,38 +94,39 @@ export default function Stats() {
   }, [tasks, projectId, period]);
 
   return (
-    <div className="px-6 pt-12 pb-24 max-w-lg mx-auto">
+    <div className="app-page">
+      {loading && <StateFeedback kind="loading" />}
       <header className="mb-10 space-y-4">
-        <h1 className="text-4xl font-bold tracking-tight">Stats</h1>
+        <h1 className="text-4xl font-bold tracking-tight">Statistics</h1>
         
-        <div className="flex gap-3">
+        <div className="ui-filter-grid flex gap-3">
           <div className="relative flex-1">
             <select 
-              value={projectId} 
+              aria-label="Project" value={projectId}
               onChange={(e) => setProjectId(e.target.value)}
-              className="w-full h-14 pl-6 pr-12 bg-black/5 dark:bg-white/5 text-zinc-900 dark:text-zinc-100 rounded-2xl border-none font-bold appearance-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all text-sm"
+              className="ui-field ui-field-trailing w-full h-14 pl-6 pr-12 bg-ui-section text-ui-text rounded-2xl border-none font-bold appearance-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all text-sm"
             >
-              <option value="all" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">All Projects</option>
+              <option value="all" className="bg-ui-surface text-ui-text">All Projects</option>
               {rootProjects.map(p => (
-                <option key={p.id} value={p.id} className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">{p.name}</option>
+                <option key={p.id} value={p.id} className="bg-ui-surface text-ui-text">{p.name}</option>
               ))}
             </select>
-            <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400">
+            <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-ui-ink/40">
               <ChevronDown size={18} />
             </div>
           </div>
 
           <div className="relative flex-1">
             <select 
-              value={period} 
+              aria-label="Period" value={period}
               onChange={(e) => setPeriod(e.target.value as Period)}
-              className="w-full h-14 pl-6 pr-12 bg-black/5 dark:bg-white/5 text-zinc-900 dark:text-zinc-100 rounded-2xl border-none font-bold appearance-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all text-sm"
+              className="ui-field ui-field-trailing w-full h-14 pl-6 pr-12 bg-ui-section text-ui-text rounded-2xl border-none font-bold appearance-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all text-sm"
             >
-              <option value="weekly" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">Weekly</option>
-              <option value="monthly" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">Monthly</option>
-              <option value="yearly" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">Yearly</option>
+              <option value="weekly" className="bg-ui-surface text-ui-text">Weekly</option>
+              <option value="monthly" className="bg-ui-surface text-ui-text">Monthly</option>
+              <option value="yearly" className="bg-ui-surface text-ui-text">Yearly</option>
             </select>
-            <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400">
+            <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-ui-ink/40">
               <ChevronDown size={18} />
             </div>
           </div>
@@ -145,11 +148,11 @@ export default function Stats() {
         </div>
       </div>
 
-      <div className="bg-black/5 dark:bg-white/5 p-8 rounded-[32px] space-y-6">
+      <div className="ui-section-card bg-ui-section p-8 rounded-[32px] space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Activity</h2>
+          <h2 className="ui-section-title text-[10px] font-black uppercase tracking-widest text-ui-ink/40">Activity</h2>
         </div>
-        <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 shadow-sm">
+        <div className="ui-item-card bg-ui-surface rounded-3xl p-6 shadow-sm">
           <StatsChart data={stats.chartData} />
         </div>
       </div>
@@ -159,8 +162,8 @@ export default function Stats() {
 
 function MetricGroup({ label, done, todo }: { label: string; done: number; todo: number }) {
   return (
-    <div className="bg-black/5 dark:bg-white/5 p-6 rounded-[32px] space-y-4">
-      <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">{label}</h3>
+    <div className="ui-section-card bg-ui-section p-6 rounded-[32px] space-y-4">
+      <h3 className="ui-section-title text-[10px] font-black uppercase tracking-widest text-ui-ink/40">{label}</h3>
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-green-500">
@@ -170,7 +173,7 @@ function MetricGroup({ label, done, todo }: { label: string; done: number; todo:
           <span className="text-xl font-black">{done}</span>
         </div>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-zinc-400">
+          <div className="flex items-center gap-2 text-ui-ink/40">
             <ListTodo size={16} />
             <span className="text-xs font-bold">To Do</span>
           </div>

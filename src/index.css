@@ -1,11 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
+@import "./styles/theme.css";
+@import "./styles/navigation.css";
+@import "./styles/dialogs.css";
+@import "./styles/components.css";
+@import "./styles/patterns.css";
+@import "./styles/forms.css";
+@import "./styles/tools.css";
+@import "./styles/rows.css";
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
-@variant dark (&:where(.dark, .dark *));
+@custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
   body {
@@ -23,3 +31,5 @@
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
+
+@source "../node_modules/@3gaspo/app-ui/src";

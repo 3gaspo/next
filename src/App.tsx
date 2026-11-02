@@ -1,11 +1,13 @@
-import React, { useEffect } from 'react';
+import { ScreenBoundary } from './components/ScreenBoundary';
+import { StateFeedback } from './components/StateFeedback';
+import React, { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import Home from './pages/Home';
-import Database from './pages/Database';
-import Stats from './pages/Stats';
-import Settings from './pages/Settings';
-import Auth from './pages/Auth';
+const Database = lazy(() => import('./pages/Database'));
+const Stats = lazy(() => import('./pages/Stats'));
+const Settings = lazy(() => import('./pages/Settings'));
+const Auth = lazy(() => import('./pages/Auth'));
 import { useData } from './hooks/useData';
 
 export default function App() {
@@ -20,17 +22,10 @@ export default function App() {
     }
   }, [settings.darkMode]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center gap-4 transition-colors">
-        <div className="w-12 h-12 border-4 border-black dark:border-white border-t-transparent rounded-full animate-spin" />
-        <p className="text-zinc-400 font-bold tracking-widest uppercase text-[10px] animate-pulse">Loading Next...</p>
-      </div>
-    );
-  }
+  if (loading) return <div className="min-h-screen bg-ui-page flex items-center justify-center"><StateFeedback kind="loading" /></div>;
 
   if (!user) {
-    return <Auth />;
+    return <ScreenBoundary><Suspense fallback={<StateFeedback kind="loading" />}><Auth /></Suspense></ScreenBoundary>;
   }
 
   return (

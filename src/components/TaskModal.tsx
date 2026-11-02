@@ -1,19 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import { ACTIONS } from '@3gaspo/app-ui/labels';
+import { ValidatedForm } from './ValidatedForm';
+import React, { useState, useEffect, useId } from 'react';
 import { Task } from '../types';
-import { X, Calendar, Target, Clock, Zap, Heart, CalendarPlus, Folder, Leaf } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { Calendar, Target, Clock, Zap, Heart, CalendarPlus, Folder, Leaf } from 'lucide-react';
+import { Dialog, DialogActions } from './Dialog';
 import { format, parseISO } from 'date-fns';
 
 interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (task: Partial<Task>) => void;
+  onSave: (task: Partial<Task>) => void | Promise<void>;
   task?: Task | null;
   parentId?: string | null;
   initialIsFolder?: boolean;
+  returnFocusId?: string;
 }
 
-export default function TaskModal({ isOpen, onClose, onSave, task, parentId, initialIsFolder = false }: TaskModalProps) {
+export default function TaskModal({ isOpen, onClose, onSave, task, parentId, initialIsFolder = false, returnFocusId }: TaskModalProps) {
+  const formId = useId();
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [isFolder, setIsFolder] = useState(false);
   const [name, setName] = useState('');
   const [addedDate, setAddedDate] = useState<string>('');
@@ -24,6 +30,7 @@ export default function TaskModal({ isOpen, onClose, onSave, task, parentId, ini
   const [appreciation, setAppreciation] = useState('5');
 
   useEffect(() => {
+    setSaveError(null);
     const todayStr = format(new Date(), 'yyyy-MM-dd');
     if (task) {
       setIsFolder(Boolean(task.isFolder));
@@ -46,8 +53,11 @@ export default function TaskModal({ isOpen, onClose, onSave, task, parentId, ini
     }
   }, [task, isOpen, initialIsFolder]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSaving) return;
+    setIsSaving(true);
+    setSaveError(null);
     
     // Create an ISO string for createdAt from the chosen addedDate
     let createdAtISO: string;
@@ -58,68 +68,43 @@ export default function TaskModal({ isOpen, onClose, onSave, task, parentId, ini
       createdAtISO = new Date().toISOString();
     }
 
-    onSave({
-      ...(task ? { id: task.id } : {}),
-      isFolder,
-      name,
-      createdAt: createdAtISO,
-      deadline: deadline || null,
-      importance: isFolder ? 0 : (Number(importance) || 0),
-      duration: isFolder ? 0 : (Number(duration) || 0),
-      effort: isFolder ? 0 : (Number(effort) || 0),
-      appreciation: isFolder ? 0 : (Number(appreciation) || 0),
-      parentId: task ? task.parentId : (parentId || null),
-    });
-    onClose();
+    try {
+      await onSave({
+        ...(task ? { id: task.id } : {}),
+        isFolder,
+        name,
+        createdAt: createdAtISO,
+        deadline: deadline || null,
+        importance: isFolder ? 0 : (Number(importance) || 0),
+        duration: isFolder ? 0 : (Number(duration) || 0),
+        effort: isFolder ? 0 : (Number(effort) || 0),
+        appreciation: isFolder ? 0 : (Number(appreciation) || 0),
+        parentId: task ? task.parentId : (parentId || null),
+      });
+      onClose();
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'Could not save. Try again.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (!isOpen) return null;
 
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-          className="absolute inset-0 bg-black/40 backdrop-blur-md"
-        />
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          className="relative w-full max-w-lg bg-white dark:bg-zinc-900 rounded-[32px] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
-        >
-          <div className="p-8 pb-4 flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800">
-            <div className="flex items-center gap-3">
-              <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                isFolder 
-                  ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200' 
-                  : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400'
-              }`}>
-                {isFolder ? <Folder size={18} /> : <Leaf size={18} />}
-              </div>
-              <h2 className="text-2xl font-bold tracking-tight">
-                {task ? (isFolder ? 'Edit Folder' : 'Edit Task') : (isFolder ? 'New Folder' : 'New Task')}
-              </h2>
-            </div>
-            <button onClick={onClose} className="p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer">
-              <X size={24} />
-            </button>
-          </div>
-
+    <Dialog open={isOpen} busy={isSaving} onClose={onClose} returnFocusId={returnFocusId} title={task ? (isFolder ? 'Edit folder' : 'Edit task') : (isFolder ? 'Add folder' : 'Add task')}>
+          {saveError && <p role="alert" className="ui-error mb-4">{saveError}</p>}
           {/* Mode Selector */}
           {!task && (
-            <div className="px-8 pt-4">
-              <div className="flex p-1 bg-zinc-100 dark:bg-zinc-800/80 rounded-2xl">
+            <div className="mb-6">
+              <div className="flex p-1 bg-ui-section rounded-2xl">
                 <button
                   type="button"
                   onClick={() => setIsFolder(false)}
                   className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                     !isFolder 
-                      ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-sm' 
-                      : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
+                      ? 'bg-ui-overlay text-ui-text shadow-sm'
+                      : 'text-ui-ink/40 hover:text-ui-text dark:hover:text-ui-text'
                   }`}
                 >
                   <Leaf size={14} />
@@ -130,8 +115,8 @@ export default function TaskModal({ isOpen, onClose, onSave, task, parentId, ini
                   onClick={() => setIsFolder(true)}
                   className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                     isFolder 
-                      ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-sm' 
-                      : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
+                      ? 'bg-ui-overlay text-ui-text shadow-sm'
+                      : 'text-ui-ink/40 hover:text-ui-text dark:hover:text-ui-text'
                   }`}
                 >
                   <Folder size={14} />
@@ -141,9 +126,9 @@ export default function TaskModal({ isOpen, onClose, onSave, task, parentId, ini
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 space-y-6">
+          <ValidatedForm id={formId} onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+              <label className="ui-field-label text-[10px] font-bold uppercase tracking-widest text-ui-ink/40">
                 {isFolder ? 'Folder Name' : 'Task Name'}
               </label>
               <input
@@ -152,51 +137,51 @@ export default function TaskModal({ isOpen, onClose, onSave, task, parentId, ini
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder={isFolder ? 'Folder name' : 'What needs to be done?'}
-                className="w-full text-2xl font-bold bg-transparent border-none focus:ring-0 p-0 placeholder:text-zinc-200 dark:placeholder:text-zinc-800"
+                className="ui-field w-full text-2xl font-bold bg-transparent border-none focus:ring-0 p-0 placeholder:text-ui-ink/30 dark:placeholder:text-ui-ink/30"
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                <label className="ui-field-label text-[10px] font-bold uppercase tracking-widest text-ui-ink/40 flex items-center gap-2">
                   <CalendarPlus size={12} /> Added Date
                 </label>
                 <input
                   type="date"
                   value={addedDate}
                   onChange={e => setAddedDate(e.target.value)}
-                  className="w-full bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-2xl border-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all font-medium"
+                  className="ui-field w-full bg-ui-section p-4 rounded-2xl border-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all font-medium"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                <label className="ui-field-label text-[10px] font-bold uppercase tracking-widest text-ui-ink/40 flex items-center gap-2">
                   <Calendar size={12} /> Deadline
                 </label>
                 <input
                   type="date"
                   value={deadline}
                   onChange={e => setDeadline(e.target.value)}
-                  className="w-full bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-2xl border-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all font-medium"
+                  className="ui-field w-full bg-ui-section p-4 rounded-2xl border-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all font-medium"
                 />
               </div>
 
               {!isFolder && (
                 <>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                    <label className="ui-field-label text-[10px] font-bold uppercase tracking-widest text-ui-ink/40 flex items-center gap-2">
                       <Clock size={12} /> Duration (mins)
                     </label>
                     <input
                       type="number"
                       value={duration}
                       onChange={e => setDuration(e.target.value)}
-                      className="w-full bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-2xl border-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all font-bold"
+                      className="ui-field w-full bg-ui-section p-4 rounded-2xl border-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all font-bold"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                    <label className="ui-field-label text-[10px] font-bold uppercase tracking-widest text-ui-ink/40 flex items-center gap-2">
                       <Target size={12} /> Importance (1-10)
                     </label>
                     <input
@@ -204,12 +189,12 @@ export default function TaskModal({ isOpen, onClose, onSave, task, parentId, ini
                       min="1" max="10"
                       value={importance}
                       onChange={e => setImportance(e.target.value)}
-                      className="w-full bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-2xl border-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all font-bold"
+                      className="ui-field w-full bg-ui-section p-4 rounded-2xl border-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all font-bold"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                    <label className="ui-field-label text-[10px] font-bold uppercase tracking-widest text-ui-ink/40 flex items-center gap-2">
                       <Zap size={12} /> Effort (1-10)
                     </label>
                     <input
@@ -217,12 +202,12 @@ export default function TaskModal({ isOpen, onClose, onSave, task, parentId, ini
                       min="1" max="10"
                       value={effort}
                       onChange={e => setEffort(e.target.value)}
-                      className="w-full bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-2xl border-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all font-bold"
+                      className="ui-field w-full bg-ui-section p-4 rounded-2xl border-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all font-bold"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                    <label className="ui-field-label text-[10px] font-bold uppercase tracking-widest text-ui-ink/40 flex items-center gap-2">
                       <Heart size={12} /> Appreciation (1-10)
                     </label>
                     <input
@@ -230,26 +215,24 @@ export default function TaskModal({ isOpen, onClose, onSave, task, parentId, ini
                       min="1" max="10"
                       value={appreciation}
                       onChange={e => setAppreciation(e.target.value)}
-                      className="w-full bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-2xl border-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all font-bold"
+                      className="ui-field w-full bg-ui-section p-4 rounded-2xl border-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all font-bold"
                     />
                   </div>
                 </>
               )}
             </div>
 
-            <div className="pt-4">
+            <DialogActions form={formId} cancel>
               <button 
                 type="submit"
-                className="w-full h-16 bg-black dark:bg-white text-white dark:text-black rounded-2xl font-bold text-lg active:scale-[0.98] transition-all shadow-lg hover:shadow-xl cursor-pointer"
+                disabled={isSaving}
+                aria-busy={isSaving}
+                className="ui-button ui-button-primary w-full h-16 bg-ui-primary text-ui-primary-text rounded-2xl font-bold text-lg transition-all shadow-lg hover:shadow-xl cursor-pointer"
               >
-                {task 
-                  ? (isFolder ? 'Save Folder' : 'Save Changes') 
-                  : (isFolder ? 'Create Folder' : 'Create Task')}
+                {isSaving ? ACTIONS.saving : ACTIONS.save}
               </button>
-            </div>
-          </form>
-        </motion.div>
-      </div>
-    </AnimatePresence>
+            </DialogActions>
+          </ValidatedForm>
+    </Dialog>
   );
 }

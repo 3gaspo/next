@@ -1,0 +1,20 @@
+.task-card-grid { --task-main-row: 1; --task-meta-row: 2; display: grid; grid-template-columns: minmax(0,1fr) 64px; column-gap: 12px; row-gap: 8px; align-items: center; }
+.task-card-grid[data-has-project="true"] { --task-main-row: 2; --task-meta-row: 3; }
+.task-card-main { display: contents; }
+.task-card-project { grid-column: 1 / -1; grid-row: 1; min-width: 0; margin: 0; overflow-wrap: anywhere; }
+.task-card-name { grid-column: 1; grid-row: var(--task-main-row); margin: 0; }
+.task-card-meta { grid-column: 1; grid-row: var(--task-meta-row); min-width: 0; margin: 0; }
+.task-card-controls { display: contents; }
+.task-card-toggle { grid-column: 2; grid-row: var(--task-main-row); justify-self: end; width: 32px; height: 32px; }
+.task-card-actions { grid-column: 2; grid-row: var(--task-meta-row); display: grid; grid-template-columns: 32px 32px; align-items: center; }
+.task-card-actions > button:last-child { grid-column: 2; }
+.task-card-score { grid-column: 1 / -1; justify-self: end; max-width: 100%; overflow-wrap: anywhere; }
+.task-card-metrics { flex-wrap: wrap; gap: 8px; }
+.task-card-metrics > span { white-space: nowrap; }
+.database-row { display: grid; grid-template-columns: minmax(0,1fr); gap: 8px; padding: 16px; }
+.database-row-main { grid-row: 1; gap: 8px; }
+.database-row-main > div:first-child { width: 32px; height: 32px; border-radius: 12px; }
+.database-row-main h3 { overflow-wrap: anywhere; }
+.database-row-actions { grid-row: 2; justify-self: end; max-width: 100%; }
+.database-row-actions button { width: 32px; min-height: 44px; height: 44px; padding: 6px; }
+.database-row-actions button svg { width: 16px; height: 16px; }

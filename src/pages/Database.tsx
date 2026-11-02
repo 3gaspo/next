@@ -1,9 +1,14 @@
+import { ConfirmDelete } from '@3gaspo/app-ui/ConfirmDelete';
+import { ActionButton } from '@3gaspo/app-ui/ActionButton';
+import { formatDate, formatNumber } from '@3gaspo/app-ui/formats';
+import { ActionMenu } from '../components/ActionMenu';
 import React, { useState, useMemo } from 'react';
 import { useData } from '../hooks/useData';
 import { Task } from '../types';
 import { getChildren, isFolder, getBreadcrumbPath, getDescendantCounts, getDescendants, getLeafTasks } from '../lib/tree';
 import { calculatePriorityScore } from '../lib/priority';
 import TaskModal from '../components/TaskModal';
+import { FloatingAddButton } from '../components/FloatingAddButton';
 import { 
   ChevronRight, 
   ChevronLeft, 
@@ -24,12 +29,12 @@ import { format, parseISO } from 'date-fns';
 export default function Database() {
   const { user, tasks, settings, saveTask, toggleTask, deleteTask, loading } = useData();
   const [currentParentId, setCurrentParentId] = useState<string | null>(null);
+  const [deletingTask, setDeletingTask] = useState<Task | null>(null);
   const [showDone, setShowDone] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [addChildParentId, setAddChildParentId] = useState<string | null>(null);
   const [modalInitialIsFolder, setModalInitialIsFolder] = useState<boolean>(false);
-  const [isFabMenuOpen, setIsFabMenuOpen] = useState(false);
 
   const allLevelTasks = useMemo(() => {
     return getChildren(currentParentId, tasks);
@@ -59,7 +64,6 @@ export default function Database() {
     setAddChildParentId(currentParentId);
     setEditingTask(null);
     setModalInitialIsFolder(asFolder);
-    setIsFabMenuOpen(false);
     setIsModalOpen(true);
   };
 
@@ -81,28 +85,27 @@ export default function Database() {
 
   const handleDelete = (taskId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirm('Delete this item and all its descendants?')) {
-      deleteTask(taskId);
-    }
+    setDeletingTask(tasks.find(task => task.id === taskId) || null);
   };
 
   const handleToggle = (taskId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    toggleTask(taskId);
+    return toggleTask(taskId);
   };
 
   return (
-    <div className="px-6 pt-12 pb-24 max-w-lg mx-auto">
+    <div className="app-page">
       <header className="mb-8 space-y-4">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-4xl font-bold tracking-tight">Database</h1>
-          <button
+          <ActionButton
             type="button"
+            aria-pressed={showDone}
             onClick={() => setShowDone(prev => !prev)}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+            className={`ui-option flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
               showDone
-                ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-sm'
-                : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
+                ? 'bg-ui-primary text-ui-primary-text shadow-sm'
+                : 'bg-ui-section text-ui-ink/40 hover:text-ui-text dark:hover:text-ui-text'
             }`}
             title={showDone ? 'Hide done tasks' : 'Show done tasks'}
           >
@@ -118,50 +121,50 @@ export default function Database() {
               </>
             )}
             {doneCountAtLevel > 0 && (
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+              <span className={"ui-meta " + (`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
                 showDone 
-                  ? 'bg-zinc-700 text-zinc-200 dark:bg-zinc-200 dark:text-zinc-800' 
-                  : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300'
-              }`}>
+                  ? 'bg-ui-primary-text/20 text-ui-primary-text'
+                  : 'bg-ui-ink/10 text-ui-ink/60'
+              }`)}>
                 {doneCountAtLevel}
               </span>
             )}
-          </button>
+          </ActionButton>
         </div>
         
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-          <button 
+          <ActionButton
             onClick={() => setCurrentParentId(null)}
-            className={`text-sm font-bold px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${!currentParentId ? 'bg-black text-white dark:bg-white dark:text-black' : 'text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'}`}
+            className={"ui-button " + (`text-sm font-bold px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${!currentParentId ? 'bg-ui-primary text-ui-primary-text' : 'text-ui-ink/40 hover:bg-ui-ink/10'}`)}
           >
             Root
-          </button>
+          </ActionButton>
           {breadcrumbs.map((crumb) => (
             <React.Fragment key={crumb.id}>
-              <ChevronRight size={14} className="text-zinc-300 shrink-0" />
-              <button 
+              <ChevronRight size={14} className="text-ui-ink/30 shrink-0" />
+              <ActionButton
                 onClick={() => setCurrentParentId(crumb.id)}
-                className={`text-sm font-bold px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${currentParentId === crumb.id ? 'bg-black text-white dark:bg-white dark:text-black' : 'text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'}`}
+                className={"ui-button " + (`text-sm font-bold px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${currentParentId === crumb.id ? 'bg-ui-primary text-ui-primary-text' : 'text-ui-ink/40 hover:bg-ui-ink/10'}`)}
               >
                 {crumb.name}
-              </button>
+              </ActionButton>
             </React.Fragment>
           ))}
         </div>
       </header>
 
-      <div className="bg-black/5 dark:bg-white/5 rounded-[32px] p-2 space-y-1">
+      <div className="bg-ui-section rounded-[32px] p-2 space-y-1">
         {currentParentId && (
-          <button 
+          <ActionButton
             onClick={() => {
               const current = tasks.find(t => t.id === currentParentId);
               setCurrentParentId(current?.parentId || null);
             }}
-            className="w-full flex items-center gap-4 p-6 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors cursor-pointer"
+            className="w-full flex items-center gap-4 p-6 text-ui-ink/40 hover:text-ui-ink/60 dark:hover:text-ui-ink/70 transition-colors cursor-pointer"
           >
             <ChevronLeft size={20} />
             <span className="font-bold uppercase text-[11px] tracking-widest">Go Back</span>
-          </button>
+          </ActionButton>
         )}
 
         <AnimatePresence mode="popLayout">
@@ -190,71 +193,71 @@ export default function Database() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 onClick={() => isItemFolder ? setCurrentParentId(task.id) : null}
-                className="group w-full flex items-center justify-between gap-4 p-6 bg-white dark:bg-zinc-900 rounded-[24px] shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-[0.99]"
+                className="database-row group w-full bg-ui-surface rounded-[24px] shadow-sm hover:shadow-md transition-all cursor-pointer "
               >
-                <div className="flex items-center gap-4 flex-1 min-w-0">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${isItemFolder ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300' : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400'}`}>
+                <div className="database-row-main flex items-center min-w-0">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${isItemFolder ? 'bg-ui-section text-ui-ink/60' : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400'}`}>
                     {isItemFolder ? <Folder size={20} fill="currentColor" opacity={0.2} /> : <Leaf size={20} />}
                   </div>
                   <div className="flex-1 min-w-0 pr-2">
-                    <h3 className={`font-bold tracking-tight break-words text-base leading-snug ${task.completed ? 'text-zinc-400 line-through' : 'text-zinc-900 dark:text-zinc-100'}`}>
+                    <h3 className={`font-bold tracking-tight break-words text-base leading-snug ${task.completed ? 'text-ui-ink/40 line-through' : 'text-ui-text'}`}>
                       {task.name}
                     </h3>
-                    <div className="text-[10px] uppercase font-bold tracking-widest text-zinc-400 mt-0.5 flex items-center gap-2 flex-wrap">
+                    <div className="ui-meta text-[10px] uppercase font-bold tracking-widest text-ui-ink/40 mt-0.5 flex items-center gap-2 flex-wrap">
                       <span>
                         {isItemFolder ? `${completed} / ${total} tasks` : 'Leaf Task'}
                       </span>
                       {task.deadline && (
                         <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 font-semibold normal-case bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-full text-[10px]">
                           <Calendar size={10} />
-                          Due {format(parseISO(task.deadline), 'MMM d')}
+                          Due {formatDate(task.deadline, 'compact')}
                         </span>
                       )}
                       {settings.showScores && itemScore !== null && (
-                        <span>• Category Score: {itemScore}</span>
+                        <span>• Category Score: {formatNumber(itemScore, 1)}</span>
                       )}
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="database-row-actions flex items-center gap-2">
                   {settings.showScores && itemScore !== null && (
-                    <span className="text-xs font-black bg-zinc-900 dark:bg-white text-white dark:text-black px-2.5 py-1 rounded-full opacity-80 group-hover:opacity-100 transition-opacity">
-                      {itemScore}
+                    <span className="text-xs font-black bg-ui-primary text-ui-primary-text px-2.5 py-1 rounded-full opacity-80 group-hover:opacity-100 transition-opacity">
+                      {formatNumber(itemScore, 1)}
                     </span>
                   )}
                   
                   <div className="flex items-center gap-1 opacity-80 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                     {!isItemFolder && (
-                      <button 
+                      <ActionButton
                         onClick={(e) => handleToggle(task.id, e)}
-                        className="p-2 text-zinc-300 hover:text-green-500 transition-colors cursor-pointer"
+                        className="p-2 text-ui-ink/30 hover:text-green-500 transition-colors cursor-pointer"
                       >
                         {task.completed ? <CheckCircle2 size={24} className="text-green-500" /> : <Circle size={24} />}
-                      </button>
+                      </ActionButton>
                     )}
-                    <button 
+                    <ActionButton
                       onClick={(e) => handleAddChild(task, e)}
-                      className="p-2 text-zinc-300 hover:text-zinc-600 dark:hover:text-zinc-100 transition-colors cursor-pointer"
-                      title={isItemFolder ? 'Add Task or Subfolder' : 'Add Child'}
+                      className="ui-icon-button p-2 text-ui-ink/30 hover:text-ui-ink/60 dark:hover:text-ui-text transition-colors cursor-pointer"
+                      title={isItemFolder ? 'Add task or Subfolder' : 'Add Child'}
                     >
                       <Plus size={20} />
-                    </button>
-                    <button 
+                    </ActionButton>
+                    <ActionButton
                       onClick={(e) => handleEdit(task, e)}
-                      className="p-2 text-zinc-300 hover:text-zinc-600 dark:hover:text-zinc-100 transition-colors cursor-pointer"
+                      className="ui-icon-button p-2 text-ui-ink/30 hover:text-ui-ink/60 dark:hover:text-ui-text transition-colors cursor-pointer"
                       title="Edit"
                     >
                       <Edit2 size={18} />
-                    </button>
-                    <button 
+                    </ActionButton>
+                    <ActionButton
                       onClick={(e) => handleDelete(task.id, e)}
-                      className="p-2 text-zinc-300 hover:text-red-500 transition-colors cursor-pointer"
+                      className="ui-icon-button p-2 text-ui-ink/30 hover:text-red-500 transition-colors cursor-pointer"
                       title="Delete"
                     >
                       <Trash2 size={18} />
-                    </button>
-                    {isItemFolder && <ChevronRight size={18} className="text-zinc-300 ml-2" />}
+                    </ActionButton>
+                    {isItemFolder && <ChevronRight size={18} className="text-ui-ink/30 ml-2" />}
                   </div>
                 </div>
               </motion.div>
@@ -266,43 +269,43 @@ export default function Database() {
           <div className="py-16 text-center space-y-4 px-4">
             {doneCountAtLevel > 0 && !showDone ? (
               <div className="space-y-3">
-                <p className="text-zinc-400 font-medium">All tasks in this view are completed</p>
-                <button
+                <p className="text-ui-ink/40 font-medium">All tasks in this view are completed</p>
+                <ActionButton
                   type="button"
                   onClick={() => setShowDone(true)}
-                  className="text-xs font-bold text-zinc-900 dark:text-zinc-100 underline hover:opacity-80 transition-opacity cursor-pointer inline-flex items-center gap-1.5"
+                  className="text-xs font-bold text-ui-text underline hover:opacity-80 transition-opacity cursor-pointer inline-flex items-center gap-1.5"
                 >
                   <Eye size={13} />
                   Show {doneCountAtLevel} done {doneCountAtLevel === 1 ? 'task' : 'tasks'}
-                </button>
+                </ActionButton>
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="w-14 h-14 mx-auto rounded-3xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400">
+                <div className="w-14 h-14 mx-auto rounded-3xl bg-ui-section flex items-center justify-center text-ui-ink/40">
                   <Folder size={26} />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-zinc-700 dark:text-zinc-300 font-bold">
+                  <p className="text-ui-ink/70 font-bold">
                     {currentParentId ? 'This folder is empty' : 'No tasks or folders yet'}
                   </p>
                 </div>
                 <div className="flex items-center justify-center gap-3 pt-2">
-                  <button
+                  <ActionButton
                     type="button"
                     onClick={() => handleCreateAtLevel(false)}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-black dark:bg-white text-white dark:text-black rounded-xl font-bold text-xs shadow-sm hover:opacity-90 transition-all cursor-pointer"
+                    className="ui-button ui-button-primary inline-flex items-center gap-2 px-4 py-2.5 bg-ui-primary text-ui-primary-text rounded-xl font-bold text-xs shadow-sm hover:opacity-90 transition-all cursor-pointer"
                   >
                     <Leaf size={14} />
-                    Add Task
-                  </button>
-                  <button
+                    Add task
+                  </ActionButton>
+                  <ActionButton
                     type="button"
                     onClick={() => handleCreateAtLevel(true)}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 rounded-xl font-bold text-xs hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all cursor-pointer"
+                    className="ui-button ui-button-secondary inline-flex items-center gap-2 px-4 py-2.5 bg-ui-section text-ui-text rounded-xl font-bold text-xs hover:bg-ui-ink/10 transition-all cursor-pointer"
                   >
                     <Folder size={14} />
-                    Add Folder
-                  </button>
+                    Add folder
+                  </ActionButton>
                 </div>
               </div>
             )}
@@ -311,50 +314,23 @@ export default function Database() {
       </div>
 
       {/* Floating Action Button with Speed Dial */}
-      <div className="fixed bottom-28 right-6 z-40 flex flex-col items-end gap-3">
-        <AnimatePresence>
-          {isFabMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: 15, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 15, scale: 0.9 }}
-              className="flex flex-col items-end gap-2.5 mb-1"
-            >
-              <button
-                type="button"
-                onClick={() => handleCreateAtLevel(true)}
-                className="flex items-center gap-2.5 px-4 py-2.5 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-full shadow-xl border border-zinc-200/60 dark:border-zinc-700/60 hover:scale-105 active:scale-95 transition-all text-sm font-bold cursor-pointer"
-              >
-                <span>New Folder</span>
-                <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-700 flex items-center justify-center text-zinc-700 dark:text-zinc-200">
-                  <Folder size={16} />
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleCreateAtLevel(false)}
-                className="flex items-center gap-2.5 px-4 py-2.5 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-full shadow-xl border border-zinc-200/60 dark:border-zinc-700/60 hover:scale-105 active:scale-95 transition-all text-sm font-bold cursor-pointer"
-              >
-                <span>New Task</span>
-                <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                  <Leaf size={16} />
-                </div>
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <button 
-          onClick={() => setIsFabMenuOpen(prev => !prev)}
-          aria-label="Add folder or task"
-          className={`w-16 h-16 bg-black dark:bg-white text-white dark:text-black rounded-full shadow-2xl flex items-center justify-center active:scale-95 transition-all cursor-pointer ${isFabMenuOpen ? 'rotate-45' : 'rotate-0'}`}
-        >
-          <Plus size={32} />
-        </button>
+      <div className="app-floating-actions z-40">
+        <ActionMenu label="Add folder or task" triggerId="add-task-menu" triggerClassName="app-add-button" icon={<Plus size={28} aria-hidden="true" />} items={[
+          { label: 'Add folder', icon: <Folder size={20} />, onSelect: () => handleCreateAtLevel(true) },
+          { label: 'Add task', icon: <Leaf size={20} />, onSelect: () => handleCreateAtLevel(false) },
+        ]} />
       </div>
 
+      <ConfirmDelete open={!!deletingTask} onClose={() => setDeletingTask(null)} title={deletingTask?.isFolder ? 'Delete folder' : 'Delete task'} onConfirm={async () => {
+        if (!deletingTask) return;
+        await deleteTask(deletingTask.id);
+        setDeletingTask(null);
+      }}>
+        <p>Delete “{deletingTask?.name}” and all its descendants?</p>
+        <p>This cannot be undone.</p>
+      </ConfirmDelete>
       <TaskModal
+        returnFocusId="add-task-menu"
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={saveTask}

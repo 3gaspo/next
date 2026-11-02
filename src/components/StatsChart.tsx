@@ -21,24 +21,24 @@ interface StatsChartProps {
 export default function StatsChart({ data }: StatsChartProps) {
   if (!data || data.length === 0) {
     return (
-      <div className="h-64 flex items-center justify-center text-zinc-400 font-medium">
+      <div className="h-64 flex items-center justify-center text-ui-ink/40 font-medium">
         No data available for this period
       </div>
     );
   }
 
   return (
-    <div className="h-64 w-full">
+    <div className="ui-chart h-64 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E2E2" opacity={0.3} />
-          <XAxis 
+          <XAxis minTickGap={24} interval="preserveStartEnd"
             dataKey="date" 
             axisLine={false} 
             tickLine={false} 
             tick={{ fontSize: 10, fontWeight: 600, fill: '#A1A1AA' }}
           />
-          <YAxis 
+          <YAxis allowDecimals={false}
             axisLine={false} 
             tickLine={false} 
             tick={{ fontSize: 10, fontWeight: 600, fill: '#A1A1AA' }}
@@ -48,7 +48,7 @@ export default function StatsChart({ data }: StatsChartProps) {
             content={({ active, payload, label }) => {
               if (active && payload && payload.length) {
                 return (
-                  <div className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-3 py-2 rounded-xl shadow-lg text-xs font-bold">
+                  <div className="ui-chart-tooltip bg-ui-primary text-ui-primary-text px-3 py-2 rounded-xl shadow-lg text-xs font-bold">
                     <p className="opacity-70 text-[10px] uppercase tracking-wider">{label}</p>
                     <p className="text-sm">{payload[0].value} {payload[0].value === 1 ? 'task' : 'tasks'} completed</p>
                   </div>
@@ -57,10 +57,10 @@ export default function StatsChart({ data }: StatsChartProps) {
               return null;
             }}
           />
-          <Bar 
+          <Bar isAnimationActive={false}
             dataKey="count" 
             fill="currentColor" 
-            className="text-zinc-900 dark:text-white" 
+            className="text-ui-text"
             radius={[4, 4, 0, 0]} 
             barSize={20}
           />

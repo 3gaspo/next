@@ -1,7 +1,10 @@
+import { StateFeedback } from '../components/StateFeedback';
+import { formatNumber } from '@3gaspo/app-ui/formats';
 import React, { useState, useMemo } from 'react';
 import { useData } from '../hooks/useData';
 import { TaskCard } from '../components/TaskCard';
 import TaskModal from '../components/TaskModal';
+import { FloatingAddButton } from '../components/FloatingAddButton';
 import { Task } from '../types';
 import { getRootProject } from '../lib/tree';
 import { calculatePriorityScore } from '../lib/priority';
@@ -48,12 +51,12 @@ export default function Home() {
   if (!user && !loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center gap-6">
-        <div className="w-24 h-24 bg-zinc-100 dark:bg-zinc-900 rounded-[32px] flex items-center justify-center text-zinc-400">
+        <div className="w-24 h-24 bg-ui-section rounded-[32px] flex items-center justify-center text-ui-ink/40">
           <LayoutGrid size={48} />
         </div>
         <div className="space-y-2">
           <h2 className="text-2xl font-bold tracking-tight">Welcome to Next</h2>
-          <p className="text-zinc-500 max-w-xs mx-auto">Please sign in from the Settings tab to start managing your priorities.</p>
+          <p className="text-ui-ink/40 max-w-xs mx-auto">Please sign in from the Settings tab to start managing your priorities.</p>
         </div>
       </div>
     );
@@ -67,23 +70,24 @@ export default function Home() {
   const isScoresEnabled = Boolean(settings.showScores);
 
   return (
-    <div className="px-6 pt-12 pb-24 max-w-lg mx-auto">
-      <header className="flex items-center justify-between mb-10">
-        <div>
-          <h1 className="text-4xl font-bold tracking-tight mb-1">Today</h1>
-          <p className="text-zinc-400 font-medium">
-            {availableUncompletedTasks.length} {availableUncompletedTasks.length === 1 ? 'task' : 'tasks'}
-          </p>
-        </div>
+    <div className="app-page app-home-content">
+      <header className="app-home-header">
+        <h1 className="app-brand-title">Next</h1>
+      </header>
+      <div className="app-home-meta flex items-center justify-between gap-4">
+        <p className="text-ui-ink/40 font-medium">
+          {availableUncompletedTasks.length} {availableUncompletedTasks.length === 1 ? 'task' : 'tasks'}
+        </p>
         {isScoresEnabled && (
           <div className="text-right">
-            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 block">Overall Score</span>
-            <span className="text-xl font-black text-zinc-900 dark:text-zinc-100">{overallScore}</span>
+            <span className="ui-section-title text-[10px] font-black uppercase tracking-widest text-ui-ink/40 block">Overall Score</span>
+            <span className="text-xl font-black text-ui-text">{formatNumber(overallScore, 1)}</span>
           </div>
         )}
-      </header>
+      </div>
 
       <div className="space-y-4">
+        {loading && <StateFeedback kind="loading" />}
         <AnimatePresence mode="popLayout">
           {displayedTasks.map(task => {
             const root = getRootProject(task.id, tasks);
@@ -103,12 +107,12 @@ export default function Home() {
         </AnimatePresence>
 
         {skippedTaskIds.length > 0 && (
-          <div className="flex items-center justify-between py-3 px-5 bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-zinc-100 dark:border-zinc-800/80 text-xs font-medium text-zinc-500">
+          <div className="ui-meta flex items-center justify-between py-3 px-5 bg-ui-section rounded-2xl border border-zinc-100 dark:border-zinc-800/80 text-xs font-medium text-ui-ink/40">
             <span>{skippedTaskIds.length} {skippedTaskIds.length === 1 ? 'task' : 'tasks'} skipped for today</span>
             <button
               type="button"
               onClick={resetSkippedTasks}
-              className="flex items-center gap-1.5 font-bold text-zinc-700 dark:text-zinc-300 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 font-bold text-ui-ink/70 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
             >
               <RotateCcw size={13} />
               Restore all
@@ -120,17 +124,14 @@ export default function Home() {
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="py-16 text-center px-6 bg-zinc-50 dark:bg-zinc-900/40 rounded-[32px]"
+            className="bg-ui-section rounded-[32px]"
           >
-            <p className="text-zinc-400 font-medium">
-              {skippedTaskIds.length > 0 
-                ? 'All other tasks are skipped for today.' 
-                : 'All caught up!'}
-            </p>
+            <StateFeedback title={skippedTaskIds.length > 0 ? 'Tasks skipped for today' : 'All caught up!'} />
           </motion.div>
         )}
       </div>
 
+      <FloatingAddButton label="Add task" onClick={() => { setEditingTask(null); setIsModalOpen(true); }} />
       <TaskModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
