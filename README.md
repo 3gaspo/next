@@ -2,6 +2,10 @@
 
 Next organise des tâches et des dossiers hiérarchiques. Son accueil propose les tâches exécutables selon un score de priorité calculé à partir de critères et de poids réglables.
 
+Le nom affiché dans l’application, les favoris et les métadonnées d’installation web est **Next** ; le nom technique npm est `next`. Le manifeste est dans `public/manifest.json`, l’icône de l’application dans `public/next.svg` et le logo des paramètres dans `public/gaspo_logo.svg`.
+
+Les icônes utilisent un canevas de 512 × 512, un fond noir opaque et des formes gris-blanc `#D9D9D9`. Les PNG `public/next-192.png` et `next-512.png` sont les exports standard ; `next-maskable-512.png` (Android) et `next-apple-touch-icon.png` (Apple, 180 × 180) appliquent la même marge de 10 % par côté, avec un symbole à 80 % de sa taille d’origine. Ils dérivent du SVG et sont référencés par le manifeste et les métadonnées Apple. Après modification du SVG, régénérer ces exports.
+
 ## Fonctionnalités
 
 - Création et édition de tâches et dossiers imbriqués, navigation par fil d’Ariane et progression des branches.
@@ -86,7 +90,7 @@ Les variables `GEMINI_API_KEY` et `APP_URL` présentes dans le fichier d’exemp
 
 ## Interface partagée
 
-L’application utilise `@3gaspo/app-ui`, actuellement en version 0.1.6, pour la navigation, les titres, dialogues, formulaires, commandes, retours d’état et formats visibles. L’interface utilise Inter et des thèmes clair et sombre communs. Les dates affichées utilisent `en-GB` et les heures le format 24 h ; les formats de stockage et d’export restent propres à l’application.
+L’application utilise `@3gaspo/app-ui`, actuellement en version 0.1.8, pour la navigation, les titres, dialogues, formulaires, commandes, retours d’état et formats visibles. L’interface utilise Inter et des thèmes clair et sombre communs. Les dates affichées utilisent `en-GB` et les heures le format 24 h ; les formats de stockage et d’export restent propres à l’application.
 
 L’archive est incluse dans [vendor/](vendor/) et référencée par `package.json` et `package-lock.json`. Ce dépôt est installable et déployable seul : aucun accès au dépôt source voisin `app-ui` ni à un registre privé n’est nécessaire. Relancer `npm ci` après un pull qui change les dépendances. La vérification du package partagé s’exécute automatiquement avant le build.
 
