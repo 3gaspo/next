@@ -11,6 +11,7 @@ interface DataContextType {
   actionableTasks: Task[];
   settings: UserSettings;
   loading: boolean;
+  loadError: string | null;
   skippedTaskIds: string[];
   skipTaskForToday: (taskId: string) => void;
   unskipTask: (taskId: string) => void;
@@ -38,6 +39,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [settings, setSettings] = useState<UserSettings>({ priority: DEFAULT_PRIORITY_SETTINGS, darkMode: false, showScores: false, maxHomeTasks: 3 });
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [skippedTaskIds, setSkippedTaskIds] = useState<string[]>([]);
 
   useEffect(() => {
@@ -45,6 +47,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       setUser(state.user);
       if (!state.user) {
         setTasks([]);
+        setLoadError(null);
         setLoading(false);
         setSkippedTaskIds([]);
       }
@@ -123,8 +126,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         showScores: Boolean(fetchedSettings?.showScores),
         maxHomeTasks: typeof fetchedSettings?.maxHomeTasks === 'number' ? fetchedSettings.maxHomeTasks : 3,
       });
+      setLoadError(null);
     } catch (error) {
       console.error('Fetch error:', error);
+      setLoadError('Could not load data. Try again.');
     } finally {
       setLoading(false);
     }
@@ -248,6 +253,7 @@ function isCompletedToday(task: Task): boolean {
     actionableTasks,
     settings,
     loading,
+    loadError,
     skippedTaskIds,
     skipTaskForToday,
     unskipTask,
@@ -259,7 +265,7 @@ function isCompletedToday(task: Task): boolean {
     resetAll,
     clearHistory,
     fetchData
-  }), [user, tasks, actionableTasks, settings, loading, skippedTaskIds, skipTaskForToday, unskipTask, resetSkippedTasks, saveTask, toggleTask, deleteTask, updateSettings, resetAll, clearHistory, fetchData]);
+  }), [user, tasks, actionableTasks, settings, loading, loadError, skippedTaskIds, skipTaskForToday, unskipTask, resetSkippedTasks, saveTask, toggleTask, deleteTask, updateSettings, resetAll, clearHistory, fetchData]);
 
   return (
     <DataContext.Provider value={value}>

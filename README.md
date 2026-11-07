@@ -27,6 +27,8 @@ Les icônes utilisent un canevas de 512 × 512, un fond noir opaque et des forme
 
 La racine `/` redirige vers l’accueil. La connexion s’affiche lorsqu’aucune session n’est active. Les écrans secondaires sont chargés à la demande.
 
+Si le chargement des données échoue, un état d’erreur avec la commande `Retry` remplace le contenu des écrans. La navigation reste disponible ; une nouvelle tentative réussie réaffiche les données sans recharger l’application.
+
 ## Stack et organisation
 
 React 19, TypeScript 5.8, Vite 6, Tailwind CSS 4, React Router, Lucide et Firebase Authentication / Firestore, avec Recharts pour les graphiques.
