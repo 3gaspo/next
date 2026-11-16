@@ -27,7 +27,7 @@ export interface PrioritySettings {
 export interface UserSettings {
   priority: PrioritySettings;
   darkMode: boolean;
-  showScores?: boolean;
+  showScores?: boolean; // Opt-in: total score and per-criterion values; absent means hidden.
   maxHomeTasks?: number;
 }
 
@@ -41,6 +41,7 @@ export const DEFAULT_PRIORITY_SETTINGS: PrioritySettings = {
 };
 
 export interface AuthState {
+  error?: boolean;
   user: { uid: string; email: string | null } | null;
   loading: boolean;
 }

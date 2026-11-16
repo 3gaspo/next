@@ -27,7 +27,7 @@ Les icônes utilisent un canevas de 512 × 512, un fond noir opaque et des forme
 
 La racine `/` redirige vers l’accueil. La connexion s’affiche lorsqu’aucune session n’est active. Les écrans secondaires sont chargés à la demande.
 
-Si le chargement des données échoue, un état d’erreur avec la commande `Retry` remplace le contenu des écrans. La navigation reste disponible ; une nouvelle tentative réussie réaffiche les données sans recharger l’application.
+Un échec de lecture affiche un message bref avec la commande `Reload page`, sans présenter une fausse liste vide. Le rechargement relance la lecture des données existantes. Les échecs d'enregistrement conservent leurs messages et parcours de nouvelle tentative dans le formulaire ou l'action concernés.
 
 ## Stack et organisation
 
@@ -78,21 +78,30 @@ Activer l’authentification email/mot de passe et Firestore dans le projet Fire
 | `npm ci` | Installer les versions du lockfile, y compris l’archive UI locale |
 | `npm run dev` | Lancer le serveur de développement sur le port 3000 |
 | `npm run lint` | Vérifier les types avec `tsc --noEmit` |
+| `npm test` | Vérifier les scores, les tranches de priorité et les échéances urgentes |
 | `npm run check:ui` | Vérifier l’archive UI, son empreinte, le lockfile et les réexports |
 | `npm run build` | Exécuter `prebuild` puis générer le site statique dans `dist/` |
 | `npm run preview` | Prévisualiser le dernier build localement |
 
-Aucun script `npm test` n’est défini actuellement ; les contrôles disponibles sont le typage, la vérification du package UI et le build.
+Les tests de priorité utilisent le runner Node via `tsx`. Les autres contrôles disponibles sont le typage, la vérification du package UI et le build.
 
 ## Priorité
 
 Le score est une somme pondérée de six critères normalisés : proximité de l’échéance, âge, importance, durée, effort et appréciation. Les poids sont réglables dans les paramètres. Les dossiers ne portent pas les mêmes critères qu’une tâche exécutable ; les fonctions de l’arbre restent dans `src/lib/tree.ts`.
 
+L’ancienneté et la durée suivent une courbe quadratique en U : `(2 × clamp(valeur / plafond, 0, 1) − 1)²`. Les plafonds restent de 360 jours et 250 minutes. Avec les poids positifs par défaut, les tâches récentes ou très anciennes, ainsi que les tâches courtes ou très longues, sont favorisées ; les minima sont à 180 jours et 125 minutes. L’ancienneté utilise les jours calendaires locaux. Les poids par défaut restent `2, 3, 2, 1, −1, 1` ; une tâche nouvelle avec les champs préremplis obtient 4,78.
+
+Chaque tâche active affiche un badge de priorité parmi cinq tranches égales de l’intervalle théorique autorisé par les poids : `Very low priority`, `Low priority`, `Medium priority`, `High priority`, `Very high priority`. Les bornes sont les sommes des poids négatifs et positifs ; avec les poids par défaut, les seuils sont −1, 1, 3, 5, 7 et 9. Cette plage couvre aussi les anciennes données contenant des notes à zéro. Les tranches s’adaptent aux poids personnalisés ; avec tous les poids à zéro, le badge est neutre (`Medium priority`).
+
+Le badge `Urgent` s’affiche sur les tâches non terminées dont l’échéance est au plus tard demain, retards inclus. Les scores et les indicateurs se recalculent au changement de journée locale et au retour dans l’application. Les badges ne changent pas les règles de classement. Les moyennes `Overall Score` et `Category Score` sont supprimées.
+
+`Show Priority Scores` est désactivé par défaut ; son choix est enregistré. Il commande le score individuel et les valeurs détaillées d’importance, durée, effort et appréciation sur l’accueil. Les badges de priorité, l’urgence, l’échéance et le nom du projet restent visibles. Les paramètres déjà choisis sont conservés. Sur l’accueil, `Skip for today` se trouve immédiatement à gauche du bouton de validation.
+
 Les variables `GEMINI_API_KEY` et `APP_URL` présentes dans le fichier d’exemple sont héritées du projet initial et ne sont pas nécessaires aux fonctionnalités actuelles de gestion des tâches.
 
 ## Interface partagée
 
-L’application utilise `@3gaspo/app-ui`, actuellement en version 0.1.8, pour la navigation, les titres, dialogues, formulaires, commandes, retours d’état et formats visibles. L’interface utilise Inter et des thèmes clair et sombre communs. Les dates affichées utilisent `en-GB` et les heures le format 24 h ; les formats de stockage et d’export restent propres à l’application.
+L’application utilise `@3gaspo/app-ui`, actuellement en version 0.1.9, pour la navigation, les titres, dialogues, formulaires, commandes, retours d’état et formats visibles. L’interface utilise Inter et des thèmes clair et sombre communs. Les dates affichées utilisent `en-GB` et les heures le format 24 h ; les formats de stockage et d’export restent propres à l’application.
 
 L’archive est incluse dans [vendor/](vendor/) et référencée par `package.json` et `package-lock.json`. Ce dépôt est installable et déployable seul : aucun accès au dépôt source voisin `app-ui` ni à un registre privé n’est nécessaire. Relancer `npm ci` après un pull qui change les dépendances. La vérification du package partagé s’exécute automatiquement avant le build.
 

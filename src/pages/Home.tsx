@@ -1,5 +1,4 @@
 import { StateFeedback } from '../components/StateFeedback';
-import { formatNumber } from '@3gaspo/app-ui/formats';
 import React, { useState, useMemo } from 'react';
 import { useData } from '../hooks/useData';
 import { TaskCard } from '../components/TaskCard';
@@ -7,12 +6,12 @@ import TaskModal from '../components/TaskModal';
 import { FloatingAddButton } from '../components/FloatingAddButton';
 import { Task } from '../types';
 import { getRootProject } from '../lib/tree';
-import { calculatePriorityScore } from '../lib/priority';
 import { LayoutGrid, RotateCcw } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function Home() {
   const { 
+    today,
     user, 
     actionableTasks, 
     tasks, 
@@ -40,13 +39,6 @@ export default function Home() {
     const completed = actionableTasks.filter(t => t.completed);
     return [...topUncompleted, ...completed];
   }, [availableUncompletedTasks, actionableTasks, maxTasks]);
-
-  const overallScore = useMemo(() => {
-    const active = actionableTasks.filter(t => !t.completed);
-    if (active.length === 0) return 0;
-    const total = active.reduce((acc, t) => acc + calculatePriorityScore(t, settings.priority), 0);
-    return Number((total / active.length).toFixed(1));
-  }, [actionableTasks, settings.priority]);
 
   if (!user && !loading) {
     return (
@@ -78,12 +70,6 @@ export default function Home() {
         <p className="text-ui-ink/40 font-medium">
           {availableUncompletedTasks.length} {availableUncompletedTasks.length === 1 ? 'task' : 'tasks'}
         </p>
-        {isScoresEnabled && (
-          <div className="text-right">
-            <span className="ui-section-title text-[10px] font-black uppercase tracking-widest text-ui-ink/40 block">Overall Score</span>
-            <span className="text-xl font-black text-ui-text">{formatNumber(overallScore, 1)}</span>
-          </div>
-        )}
       </div>
 
       <div className="space-y-4">
@@ -95,6 +81,7 @@ export default function Home() {
               <TaskCard
                 key={task.id}
                 task={task}
+                today={today}
                 rootProjectName={root?.name}
                 settings={settings.priority}
                 showScores={isScoresEnabled}

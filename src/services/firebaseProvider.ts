@@ -59,7 +59,7 @@ export class FirebaseAuthProvider implements IAuthProvider {
         user: user ? { uid: user.uid, email: user.email } : null,
         loading: false,
       });
-    });
+    }, () => callback({ user: null, loading: false, error: true }));
   }
   async signIn(email: string, pass: string) {
     await signInWithEmailAndPassword(auth, email, pass);

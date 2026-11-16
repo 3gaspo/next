@@ -1,5 +1,5 @@
 import { ScreenBoundary } from './components/ScreenBoundary';
-import { StateFeedback } from './components/StateFeedback';
+import { StateFeedback, DataLoadError } from './components/StateFeedback';
 import React, { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
@@ -11,7 +11,7 @@ const Auth = lazy(() => import('./pages/Auth'));
 import { useData } from './hooks/useData';
 
 export default function App() {
-  const { user, settings, loading } = useData();
+  const { user, settings, loading, loadError } = useData();
 
   useEffect(() => {
     // Apply initial theme
@@ -23,6 +23,8 @@ export default function App() {
   }, [settings.darkMode]);
 
   if (loading) return <div className="min-h-screen bg-ui-page flex items-center justify-center"><StateFeedback kind="loading" /></div>;
+
+  if (!user && loadError) return <div className="app-page"><DataLoadError /></div>;
 
   if (!user) {
     return <ScreenBoundary><Suspense fallback={<StateFeedback kind="loading" />}><Auth /></Suspense></ScreenBoundary>;

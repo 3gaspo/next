@@ -4,8 +4,10 @@ import { Task, UserSettings, DEFAULT_PRIORITY_SETTINGS } from '../types';
 import { authProvider, dataProvider } from '../services/providerFactory';
 import { getLeafTasks } from '../lib/tree';
 import { sortTasksByPriority } from '../lib/priority';
+import { useToday } from './useToday';
 
 interface DataContextType {
+  today: Date;
   user: { uid: string; email: string | null } | null;
   tasks: Task[];
   actionableTasks: Task[];
@@ -35,6 +37,7 @@ function getTodayKey(): string {
 }
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
+  const today = useToday();
   const [user, setUser] = useState<{ uid: string; email: string | null } | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [settings, setSettings] = useState<UserSettings>({ priority: DEFAULT_PRIORITY_SETTINGS, darkMode: false, showScores: false, maxHomeTasks: 3 });
@@ -43,16 +46,27 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [skippedTaskIds, setSkippedTaskIds] = useState<string[]>([]);
 
   useEffect(() => {
-    const unsub = authProvider.onAuthStateChanged((state) => {
-      setUser(state.user);
-      if (!state.user) {
-        setTasks([]);
-        setLoadError(null);
-        setLoading(false);
-        setSkippedTaskIds([]);
-      }
-    });
-    return unsub;
+    try {
+      const unsub = authProvider.onAuthStateChanged((state) => {
+        if (state.error) {
+          setLoadError("Could not load data.");
+          setLoading(false);
+          return;
+        }
+        setUser(state.user);
+        if (!state.user) {
+          setTasks([]);
+          setLoadError(null);
+          setLoading(false);
+          setSkippedTaskIds([]);
+        }
+      });
+      return unsub;
+    } catch (error) {
+      console.error("Could not load session:", error);
+      setLoadError("Could not load data.");
+      setLoading(false);
+    }
   }, []);
 
   // Load skipped tasks for today for current user
@@ -74,7 +88,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       console.error('Error loading skipped tasks:', e);
     }
     setSkippedTaskIds([]);
-  }, [user]);
+  }, [user, today]);
 
   const saveSkippedToStorage = useCallback((uid: string, ids: string[]) => {
     try {
@@ -152,13 +166,13 @@ function isCompletedToday(task: Task): boolean {
     const leaves = getLeafTasks(tasks);
     // Include all active tasks, plus tasks completed today (they disappear the next day)
     const validLeaves = leaves.filter(t => !t.completed || isCompletedToday(t));
-    const sorted = sortTasksByPriority(validLeaves, settings.priority);
+    const sorted = sortTasksByPriority(validLeaves, settings.priority, today);
     // Move completed tasks to the bottom
     return [
       ...sorted.filter(t => !t.completed),
       ...sorted.filter(t => t.completed)
     ];
-  }, [tasks, settings.priority]);
+  }, [tasks, settings.priority, today]);
 
   const saveTask = async (taskData: Partial<Task>) => {
     if (!user) return;
@@ -248,6 +262,7 @@ function isCompletedToday(task: Task): boolean {
   };
 
   const value = useMemo(() => ({
+    today,
     user,
     tasks,
     actionableTasks,
@@ -265,7 +280,7 @@ function isCompletedToday(task: Task): boolean {
     resetAll,
     clearHistory,
     fetchData
-  }), [user, tasks, actionableTasks, settings, loading, loadError, skippedTaskIds, skipTaskForToday, unskipTask, resetSkippedTasks, saveTask, toggleTask, deleteTask, updateSettings, resetAll, clearHistory, fetchData]);
+  }), [today, user, tasks, actionableTasks, settings, loading, loadError, skippedTaskIds, skipTaskForToday, unskipTask, resetSkippedTasks, saveTask, toggleTask, deleteTask, updateSettings, resetAll, clearHistory, fetchData]);
 
   return (
     <DataContext.Provider value={value}>

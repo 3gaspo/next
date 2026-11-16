@@ -5,8 +5,9 @@ import { ActionMenu } from '../components/ActionMenu';
 import React, { useState, useMemo } from 'react';
 import { useData } from '../hooks/useData';
 import { Task } from '../types';
-import { getChildren, isFolder, getBreadcrumbPath, getDescendantCounts, getDescendants, getLeafTasks } from '../lib/tree';
+import { getChildren, isFolder, getBreadcrumbPath, getDescendantCounts } from '../lib/tree';
 import { calculatePriorityScore } from '../lib/priority';
+import { TaskPriorityIndicators } from '../components/TaskPriorityIndicators';
 import TaskModal from '../components/TaskModal';
 import { FloatingAddButton } from '../components/FloatingAddButton';
 import { 
@@ -27,7 +28,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { format, parseISO } from 'date-fns';
 
 export default function Database() {
-  const { user, tasks, settings, saveTask, toggleTask, deleteTask, loading } = useData();
+  const { user, tasks, settings, saveTask, toggleTask, deleteTask, loading, today } = useData();
   const [currentParentId, setCurrentParentId] = useState<string | null>(null);
   const [deletingTask, setDeletingTask] = useState<Task | null>(null);
   const [showDone, setShowDone] = useState(false);
@@ -172,19 +173,8 @@ export default function Database() {
             const isItemFolder = isFolder(task, tasks);
             const { total, completed } = getDescendantCounts(task.id, tasks);
             
-            let itemScore: number | null = null;
-            if (settings.showScores) {
-              if (isItemFolder) {
-                const descendants = getDescendants(task.id, tasks);
-                const activeLeaves = getLeafTasks(descendants).filter(d => !d.completed);
-                if (activeLeaves.length > 0) {
-                  const sum = activeLeaves.reduce((acc, t) => acc + calculatePriorityScore(t, settings.priority), 0);
-                  itemScore = Number((sum / activeLeaves.length).toFixed(1));
-                }
-              } else {
-                itemScore = calculatePriorityScore(task, settings.priority);
-              }
-            }
+            const itemScore = settings.showScores && !isItemFolder
+              ? calculatePriorityScore(task, settings.priority, today) : null;
             
             return (
               <motion.div
@@ -213,10 +203,8 @@ export default function Database() {
                           Due {formatDate(task.deadline, 'compact')}
                         </span>
                       )}
-                      {settings.showScores && itemScore !== null && (
-                        <span>• Category Score: {formatNumber(itemScore, 1)}</span>
-                      )}
                     </div>
+                    {!isItemFolder && <TaskPriorityIndicators task={task} settings={settings.priority} today={today} />}
                   </div>
                 </div>
 
