@@ -1,7 +1,10 @@
 import { ValidatedForm } from '../components/ValidatedForm';
+import { HelpSection } from '@3gaspo/app-ui/Tutorial';
+import { featureGuide } from '../featureGuide';
+import { SettingsSaveFeedback, useSettingsSave } from '@3gaspo/app-ui/SettingsSaveFeedback';
 import { SettingsToggle } from '../components/SettingsSwitch';
 import { PageHeader } from '../components/PageHeader';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useData } from '../hooks/useData';
 import { authProvider, firebaseReady } from '../services/providerFactory';
 import { DEFAULT_PRIORITY_SETTINGS, UserSettings } from '../types';
@@ -29,6 +32,7 @@ const SUPPORT_URL = "https://ko-fi.com/3gaspo";
 
 export default function Settings() {
   const { user, settings, updateSettings, tasks, clearHistory, resetAll } = useData();
+  const saves = useSettingsSave();
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [authForm, setAuthForm] = useState({ email: '', password: '', isLogin: true, showPass: false, error: '' });
 
@@ -49,10 +53,7 @@ export default function Settings() {
   const handlePriorityChange = (key: keyof typeof settings.priority, val: string) => {
     const num = Number(val);
     if (!isNaN(num)) {
-      updateSettings({
-        ...settings,
-        priority: { ...settings.priority, [key]: num }
-      });
+      void saves.save(() => updateSettings({ priority: { [key]: num } }), key);
     }
   };
 
@@ -61,25 +62,25 @@ export default function Settings() {
 
   const toggleDarkMode = () => {
     const newMode = !isDarkMode;
-    updateSettings({ ...settings, darkMode: newMode });
-    if (newMode) document.documentElement.classList.add('dark');
-    else document.documentElement.classList.remove('dark');
+    return saves.save(() => updateSettings({ darkMode: newMode }), 'theme');
   };
 
   const toggleShowScores = () => {
-    updateSettings({ ...settings, showScores: !isScoresEnabled });
+    return saves.save(() => updateSettings({ showScores: !isScoresEnabled }), 'scores');
   };
 
   return (
     <div className="app-page space-y-6">
       <PageHeader title="Settings" devMode={!firebaseReady} />
+      <SettingsSaveFeedback {...saves} />
 
       {/* Priority Settings */}
       <section className="ui-section-card bg-ui-section p-8 rounded-[32px] space-y-6">
         <div className="flex items-center justify-between mb-2">
           <h2 className="ui-section-title text-[10px] font-black uppercase tracking-widest text-ui-ink/40">Priority Engine</h2>
           <button 
-            onClick={() => updateSettings({ ...settings, priority: DEFAULT_PRIORITY_SETTINGS })}
+            disabled={saves.saving}
+            onClick={() => saves.save(() => updateSettings({ priority: DEFAULT_PRIORITY_SETTINGS }), 'priority-reset')}
             className="ui-compact-control text-[10px] font-black uppercase tracking-widest text-ui-ink/40 hover:text-black dark:hover:text-white"
           >
             Reset
@@ -99,9 +100,9 @@ export default function Settings() {
       <section className="ui-section-card bg-ui-section p-8 rounded-[32px] space-y-4">
         <h2 className="ui-section-title text-[10px] font-black uppercase tracking-widest text-ui-ink/40">Appearance</h2>
         
-        <SettingsToggle checked={isDarkMode} onClick={toggleDarkMode} label="Dark Mode" icon={<Moon size={20} />} />
+        <SettingsToggle checked={isDarkMode} disabled={saves.saving} onClick={toggleDarkMode} label="Dark Mode" icon={<Moon size={20} />} />
 
-        <SettingsToggle checked={isScoresEnabled} onClick={toggleShowScores} label="Show Priority Scores" icon={isScoresEnabled ? <Eye size={20} /> : <EyeOff size={20} />} />
+        <SettingsToggle checked={isScoresEnabled} disabled={saves.saving} onClick={toggleShowScores} label="Show Priority Scores" icon={isScoresEnabled ? <Eye size={20} /> : <EyeOff size={20} />} />
 
         <div className="ui-setting-row bg-ui-surface">
           <div className="flex items-center gap-4">
@@ -111,15 +112,15 @@ export default function Settings() {
             <span className="ui-setting-label">Tasks on Home</span>
           </div>
           <div className="flex items-center gap-2">
-            <input 
+            <DraftNumberInput
               type="number" 
               min="1"
               max="50"
               value={settings.maxHomeTasks ?? 3} 
-              onChange={e => {
-                const val = parseInt(e.target.value, 10);
+              onValueChange={value => {
+                const val = parseInt(value, 10);
                 if (!isNaN(val) && val > 0) {
-                  updateSettings({ ...settings, maxHomeTasks: val });
+                  void saves.save(() => updateSettings({ maxHomeTasks: val }), 'maxHomeTasks');
                 }
               }}
               className="ui-field w-16 bg-ui-section border-none rounded-xl text-center font-black focus:ring-1 focus:ring-black dark:focus:ring-white transition-all text-ui-text p-2"
@@ -200,6 +201,8 @@ export default function Settings() {
         )}
       </section>
 
+      <HelpSection appName="Next" sections={featureGuide} />
+
       {/* Actions */}
       <section className="ui-section-card bg-ui-section p-8 rounded-[32px] space-y-4">
         <h2 className="ui-section-title text-[10px] font-black uppercase tracking-widest text-ui-ink/40">Actions</h2>
@@ -263,14 +266,26 @@ function WeightInput({ label, value, onChange }: { label: string; value: number;
   return (
     <div className="ui-setting-row flex items-center justify-between bg-ui-surface p-6 rounded-[24px] shadow-sm">
       <span className="font-bold text-ui-ink/60">{label}</span>
-      <input 
+      <DraftNumberInput
         type="number" 
         value={value} 
-        onChange={e => onChange(e.target.value)}
+        onValueChange={onChange}
         className="ui-field w-20 bg-ui-section border-none rounded-xl text-right font-black focus:ring-1 focus:ring-black dark:focus:ring-white transition-all text-ui-text"
       />
     </div>
   );
+}
+
+function DraftNumberInput({ value, onValueChange, ...props }: Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'> & { value: number; onValueChange: (value: string) => void }) {
+  const [draft, setDraft] = useState(String(value));
+  const input = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (document.activeElement !== input.current) setDraft(String(value));
+  }, [value]);
+  return <input {...props} ref={input} value={draft} onChange={event => {
+    setDraft(event.target.value);
+    onValueChange(event.target.value);
+  }} />;
 }
 
 function SettingsAction({ icon, label, onClick, destructive }: { icon: React.ReactNode; label: string; onClick: () => void; destructive?: boolean }) {

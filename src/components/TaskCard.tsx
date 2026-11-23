@@ -37,7 +37,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95, y: -10 }}
       transition={{ duration: 0.15 }}
-      className="ui-item-card bg-ui-surface border border-ui-border rounded-3xl p-6 shadow-sm hover:shadow-md transition-all group"
+      className="ui-item-card bg-ui-surface border border-ui-border rounded-3xl p-6 shadow-sm ui-interactive-surface group"
     >
       <div className="task-card-grid" data-has-project={!!rootProjectName} data-show-scores={showScores}>
         <div className="task-card-main min-w-0 space-y-2">

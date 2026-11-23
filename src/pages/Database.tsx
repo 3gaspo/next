@@ -154,7 +154,7 @@ export default function Database() {
         </div>
       </header>
 
-      <div className="bg-ui-section rounded-[32px] p-2 space-y-1">
+      <div className="ui-section-card ui-section-card--compact space-y-1">
         {currentParentId && (
           <ActionButton
             onClick={() => {
@@ -183,7 +183,7 @@ export default function Database() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 onClick={() => isItemFolder ? setCurrentParentId(task.id) : null}
-                className="database-row group w-full bg-ui-surface rounded-[24px] shadow-sm hover:shadow-md transition-all cursor-pointer "
+                className="database-row group w-full bg-ui-surface rounded-[24px] shadow-sm ui-interactive-surface cursor-pointer"
               >
                 <div className="database-row-main flex items-center min-w-0">
                   <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${isItemFolder ? 'bg-ui-section text-ui-ink/60' : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400'}`}>

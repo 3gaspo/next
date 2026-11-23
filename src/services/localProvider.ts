@@ -1,4 +1,5 @@
 import { IAuthProvider, IDataProvider } from './interfaces';
+import { DEFAULT_DARK_MODE } from '@3gaspo/app-ui/themePreference';
 import { Task, UserSettings, AuthState, DEFAULT_PRIORITY_SETTINGS } from '../types';
 
 const TASKS_KEY = 'next_local_tasks';
@@ -97,7 +98,7 @@ export class LocalDataProvider implements IDataProvider {
 
   async getSettings(_uid: string): Promise<UserSettings | null> {
     const stored = localStorage.getItem(SETTINGS_KEY);
-    return stored ? JSON.parse(stored) : { priority: DEFAULT_PRIORITY_SETTINGS, darkMode: false, showScores: false };
+    return stored ? JSON.parse(stored) : { priority: DEFAULT_PRIORITY_SETTINGS, darkMode: DEFAULT_DARK_MODE, showScores: false };
   }
 
   async saveSettings(_uid: string, settings: UserSettings): Promise<void> {

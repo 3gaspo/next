@@ -1,10 +1,13 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { DEFAULT_DARK_MODE } from '@3gaspo/app-ui/themePreference';
 import { isToday, parseISO } from 'date-fns';
 import { Task, UserSettings, DEFAULT_PRIORITY_SETTINGS } from '../types';
 import { authProvider, dataProvider } from '../services/providerFactory';
 import { getLeafTasks } from '../lib/tree';
 import { sortTasksByPriority } from '../lib/priority';
 import { useToday } from './useToday';
+
+type SettingsUpdate = Omit<Partial<UserSettings>, 'priority'> & { priority?: Partial<UserSettings['priority']> };
 
 interface DataContextType {
   today: Date;
@@ -21,7 +24,7 @@ interface DataContextType {
   saveTask: (taskData: Partial<Task>) => Promise<void>;
   toggleTask: (taskId: string) => Promise<void>;
   deleteTask: (taskId: string) => Promise<void>;
-  updateSettings: (newSettings: UserSettings) => Promise<void>;
+  updateSettings: (newSettings: SettingsUpdate) => Promise<void>;
   resetAll: () => Promise<void>;
   clearHistory: () => Promise<void>;
   fetchData: () => Promise<void>;
@@ -40,7 +43,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const today = useToday();
   const [user, setUser] = useState<{ uid: string; email: string | null } | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [settings, setSettings] = useState<UserSettings>({ priority: DEFAULT_PRIORITY_SETTINGS, darkMode: false, showScores: false, maxHomeTasks: 3 });
+  const [settings, setSettings] = useState<UserSettings>({ priority: DEFAULT_PRIORITY_SETTINGS, darkMode: DEFAULT_DARK_MODE, showScores: false, maxHomeTasks: 3 });
+  const settingsRef = useRef(settings);
+  settingsRef.current = settings;
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [skippedTaskIds, setSkippedTaskIds] = useState<string[]>([]);
@@ -136,7 +141,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       setTasks(fetchedTasks);
       setSettings({
         priority: { ...DEFAULT_PRIORITY_SETTINGS, ...(fetchedSettings?.priority || {}) },
-        darkMode: Boolean(fetchedSettings?.darkMode),
+        darkMode: fetchedSettings?.darkMode ?? DEFAULT_DARK_MODE,
         showScores: Boolean(fetchedSettings?.showScores),
         maxHomeTasks: typeof fetchedSettings?.maxHomeTasks === 'number' ? fetchedSettings.maxHomeTasks : 3,
       });
@@ -225,17 +230,19 @@ function isCompletedToday(task: Task): boolean {
     await fetchData();
   };
 
-  const updateSettings = async (newSettings: UserSettings) => {
+  const updateSettings = async (updates: SettingsUpdate) => {
     if (!user) return;
+    const newSettings = { ...settingsRef.current, ...updates };
     const normalized: UserSettings = {
       ...newSettings,
-      priority: { ...DEFAULT_PRIORITY_SETTINGS, ...(newSettings.priority || {}) },
-      darkMode: Boolean(newSettings.darkMode),
+      priority: { ...DEFAULT_PRIORITY_SETTINGS, ...settingsRef.current.priority, ...updates.priority },
+      darkMode: newSettings.darkMode ?? DEFAULT_DARK_MODE,
       showScores: Boolean(newSettings.showScores),
       maxHomeTasks: typeof newSettings.maxHomeTasks === 'number' && newSettings.maxHomeTasks > 0 ? newSettings.maxHomeTasks : 3,
     };
-    setSettings(normalized);
     await dataProvider.saveSettings(user.uid, normalized);
+    settingsRef.current = normalized;
+    setSettings(normalized);
   };
 
   const resetAll = async () => {

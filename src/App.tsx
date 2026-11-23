@@ -1,9 +1,11 @@
 import { ScreenBoundary } from './components/ScreenBoundary';
+import { TutorialProvider } from '@3gaspo/app-ui/Tutorial';
 import { StateFeedback, DataLoadError } from './components/StateFeedback';
 import React, { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import Home from './pages/Home';
+import { tutorialPages } from './tutorial';
 const Database = lazy(() => import('./pages/Database'));
 const Stats = lazy(() => import('./pages/Stats'));
 const Settings = lazy(() => import('./pages/Settings'));
@@ -32,15 +34,17 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Navigate to="/home" replace />} />
-          <Route path="home" element={<Home />} />
-          <Route path="database" element={<Database />} />
-          <Route path="stats" element={<Stats />} />
-          <Route path="settings" element={<Settings />} />
-        </Route>
-      </Routes>
+      <TutorialProvider appName="Next" accountId={user.uid} ready={!loadError} pages={tutorialPages}>
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Navigate to="/home" replace />} />
+            <Route path="home" element={<Home />} />
+            <Route path="database" element={<Database />} />
+            <Route path="stats" element={<Stats />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
+        </Routes>
+      </TutorialProvider>
     </BrowserRouter>
   );
 }

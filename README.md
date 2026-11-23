@@ -27,6 +27,8 @@ Les icônes utilisent un canevas de 512 × 512, un fond noir opaque et des forme
 
 La racine `/` redirige vers l’accueil. La connexion s’affiche lorsqu’aucune session n’est active. Les écrans secondaires sont chargés à la demande.
 
+Un tutoriel présente le but de l’app, puis les fonctions principales de ses quatre onglets avec leurs icônes. Il s’ouvre à la première visite de l’accueil après connexion et sa fermeture est mémorisée pour ce compte dans le navigateur. La section Help de Settings regroupe `View tutorial` et `Detailed functionalities`, qui ouvre un guide des parcours et des calculs de l’app.
+
 Un échec de lecture affiche un message bref avec la commande `Reload page`, sans présenter une fausse liste vide. Le rechargement relance la lecture des données existantes. Les échecs d'enregistrement conservent leurs messages et parcours de nouvelle tentative dans le formulaire ou l'action concernés.
 
 ## Stack et organisation
@@ -99,9 +101,12 @@ Le badge `Urgent` s’affiche sur les tâches non terminées dont l’échéance
 
 Les variables `GEMINI_API_KEY` et `APP_URL` présentes dans le fichier d’exemple sont héritées du projet initial et ne sont pas nécessaires aux fonctionnalités actuelles de gestion des tâches.
 
+
+Les réglages signalent une sauvegarde en cours et les échecs avec Retry. Les changements sont écrits dans l’ordre ; une valeur rejetée n’est pas présentée comme enregistrée. Les champs numériques conservent la saisie pendant l’attente.
+
 ## Interface partagée
 
-L’application utilise `@3gaspo/app-ui`, actuellement en version 0.1.9, pour la navigation, les titres, dialogues, formulaires, commandes, retours d’état et formats visibles. L’interface utilise Inter et des thèmes clair et sombre communs. Les dates affichées utilisent `en-GB` et les heures le format 24 h ; les formats de stockage et d’export restent propres à l’application.
+L’application utilise `@3gaspo/app-ui`, actuellement en version 0.1.12, pour la navigation, les titres, dialogues, formulaires, commandes, retours d’état et formats visibles. Inter et Source Sans 3 sont hébergées avec l’application. Source Sans 3 sert au titre portant le nom de l’app, et Inter au reste de l’interface. Les dates affichées utilisent `en-GB` et les heures le format 24 h ; les formats de stockage et d’export restent propres à l’application.
 
 L’archive est incluse dans [vendor/](vendor/) et référencée par `package.json` et `package-lock.json`. Ce dépôt est installable et déployable seul : aucun accès au dépôt source voisin `app-ui` ni à un registre privé n’est nécessaire. Relancer `npm ci` après un pull qui change les dépendances. La vérification du package partagé s’exécute automatiquement avant le build.
 

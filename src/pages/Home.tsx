@@ -74,24 +74,26 @@ export default function Home() {
 
       <div className="space-y-4">
         {loading && <StateFeedback kind="loading" />}
-        <AnimatePresence mode="popLayout">
-          {displayedTasks.map(task => {
-            const root = getRootProject(task.id, tasks);
-            return (
-              <TaskCard
-                key={task.id}
-                task={task}
-                today={today}
-                rootProjectName={root?.name}
-                settings={settings.priority}
-                showScores={isScoresEnabled}
-                onToggle={toggleTask}
-                onEdit={handleEdit}
-                onSkip={skipTaskForToday}
-              />
-            );
-          })}
-        </AnimatePresence>
+        <div className="ui-section-card ui-section-card--compact relative space-y-3 empty:hidden">
+          <AnimatePresence mode="popLayout">
+            {displayedTasks.map(task => {
+              const root = getRootProject(task.id, tasks);
+              return (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  today={today}
+                  rootProjectName={root?.name}
+                  settings={settings.priority}
+                  showScores={isScoresEnabled}
+                  onToggle={toggleTask}
+                  onEdit={handleEdit}
+                  onSkip={skipTaskForToday}
+                />
+              );
+            })}
+          </AnimatePresence>
+        </div>
 
         {skippedTaskIds.length > 0 && (
           <div className="ui-meta flex items-center justify-between py-3 px-5 bg-ui-section rounded-2xl border border-zinc-100 dark:border-zinc-800/80 text-xs font-medium text-ui-ink/40">
