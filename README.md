@@ -29,6 +29,8 @@ La racine `/` redirige vers l’accueil. La connexion s’affiche lorsqu’aucun
 
 Un tutoriel présente le but de l’app, puis les fonctions principales de ses quatre onglets avec leurs icônes. Il s’ouvre à la première visite de l’accueil après connexion et sa fermeture est mémorisée pour ce compte dans le navigateur. La section Help de Settings regroupe `View tutorial` et `Detailed functionalities`, qui ouvre un guide des parcours et des calculs de l’app.
 
+Une page du tutoriel explique les six facteurs du score de priorité par défaut. Le guide détaillé donne la formule et ses poids.
+
 Un échec de lecture affiche un message bref avec la commande `Reload page`, sans présenter une fausse liste vide. Le rechargement relance la lecture des données existantes. Les échecs d'enregistrement conservent leurs messages et parcours de nouvelle tentative dans le formulaire ou l'action concernés.
 
 ## Stack et organisation

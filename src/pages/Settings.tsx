@@ -11,6 +11,7 @@ import { DEFAULT_PRIORITY_SETTINGS, UserSettings } from '../types';
 import { downloadTasksAsCSV } from '../lib/export';
 import { AnimatePresence } from 'motion/react';
 import ResetModal from '../components/ResetModal';
+import packageJson from '../../package.json';
 import { 
   Settings as SettingsIcon, 
   Moon, 
@@ -232,7 +233,7 @@ export default function Settings() {
             }}
           />
           <div>
-            <p className="font-bold">Next — version 0.1.2</p>
+            <p className="font-bold">Next — version {packageJson.version}</p>
             <p className="text-sm font-medium">GASPARD BERTHELIER</p>
             <p className="text-xs">gberthelier.projet@gmail.com</p>
           </div>

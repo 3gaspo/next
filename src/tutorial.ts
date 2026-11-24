@@ -1,4 +1,8 @@
-import { BarChart2, CheckCircle, ChevronDown, ChevronRight, Circle, Database, Edit2, Eye, FastForward, Home, ListOrdered, Plus, Settings, SlidersHorizontal } from 'lucide-react';
+import {
+  BarChart2, Calendar, CheckCircle, ChevronDown, ChevronRight, Circle, Clock, Database,
+  Edit2, Eye, FastForward, Heart, History, Home, ListOrdered, Plus, Settings,
+  SlidersHorizontal, Target, Zap,
+} from 'lucide-react';
 import type { TutorialPages } from '@3gaspo/app-ui/Tutorial';
 
 export const tutorialPages = [
@@ -12,9 +16,20 @@ export const tutorialPages = [
     title: 'Home',
     actions: [
       { icon: Plus, text: 'Add a task', primary: true },
-      { icon: ListOrdered, text: 'Priority weighs deadline, age, importance, duration, effort and enjoyment. Near deadlines help, and effort lowers the default score.' },
       { icon: Circle, text: 'Complete a suggested task' },
       { icon: FastForward, text: 'Skip a task for today' },
+    ],
+  },
+  {
+    icon: ListOrdered,
+    title: 'Default priority factors',
+    actions: [
+      { icon: Calendar, text: 'Deadline · sooner ranks higher' },
+      { icon: History, text: 'Age · boosts new or very old' },
+      { icon: Target, text: 'Importance · higher helps' },
+      { icon: Clock, text: 'Duration · short or very long' },
+      { icon: Zap, text: 'Effort · easier tasks rank up' },
+      { icon: Heart, text: 'Appreciation · fun ranks higher' },
     ],
   },
   {
@@ -38,9 +53,9 @@ export const tutorialPages = [
     icon: Settings,
     title: 'Settings',
     actions: [
-      { icon: SlidersHorizontal, text: 'Adjust the priority formula' },
-      { icon: ListOrdered, text: 'Choose how many tasks Home shows' },
-      { icon: Eye, text: 'Show or hide priority scores' },
+      { icon: SlidersHorizontal, text: 'Tune the six priority weights' },
+      { icon: ListOrdered, text: 'Choose Home’s task limit' },
+      { icon: Eye, text: 'Show or hide scores' },
     ],
   },
 ] as const satisfies TutorialPages;
