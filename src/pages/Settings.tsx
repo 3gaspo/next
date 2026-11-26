@@ -1,3 +1,5 @@
+import { GuestAccount } from '@3gaspo/app-ui/GuestAccount';
+import { isGuestSession } from '@3gaspo/app-ui/guestSession';
 import { ValidatedForm } from '../components/ValidatedForm';
 import { HelpSection } from '@3gaspo/app-ui/Tutorial';
 import { featureGuide } from '../featureGuide';
@@ -72,7 +74,7 @@ export default function Settings() {
 
   return (
     <div className="app-page space-y-6">
-      <PageHeader title="Settings" devMode={!firebaseReady} />
+      <PageHeader title="Settings" devMode={!firebaseReady && !isGuestSession} />
       <SettingsSaveFeedback {...saves} />
 
       {/* Priority Settings */}
@@ -131,7 +133,7 @@ export default function Settings() {
       </section>
 
       {/* Account */}
-      <section className="ui-section-card bg-ui-section p-8 rounded-[32px] space-y-6">
+      {isGuestSession ? <GuestAccount /> : <section className="ui-section-card bg-ui-section p-8 rounded-[32px] space-y-6">
         <h2 className="ui-section-title text-[10px] font-black uppercase tracking-widest text-ui-ink/40">Account</h2>
         {user ? (
           <div className="space-y-4">
@@ -200,7 +202,7 @@ export default function Settings() {
             </button>
           </ValidatedForm>
         )}
-      </section>
+      </section>}
 
       <HelpSection appName="Next" sections={featureGuide} />
 

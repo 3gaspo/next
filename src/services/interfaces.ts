@@ -4,6 +4,7 @@ export interface IAuthProvider {
   onAuthStateChanged: (callback: (state: AuthState) => void) => () => void;
   signIn: (email: string, pass: string) => Promise<void>;
   signUp: (email: string, pass: string) => Promise<void>;
+  resetPassword?: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 

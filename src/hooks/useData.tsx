@@ -1,3 +1,4 @@
+import { appStorage } from '@3gaspo/app-ui/guestSession';
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { DEFAULT_DARK_MODE } from '@3gaspo/app-ui/themePreference';
 import { isToday, parseISO } from 'date-fns';
@@ -81,7 +82,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     try {
-      const stored = localStorage.getItem(`${SKIPPED_TASKS_KEY}_${user.uid}`);
+      const stored = appStorage.getItem(`${SKIPPED_TASKS_KEY}_${user.uid}`);
       if (stored) {
         const parsed = JSON.parse(stored);
         if (parsed.date === getTodayKey() && Array.isArray(parsed.taskIds)) {
@@ -97,7 +98,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   const saveSkippedToStorage = useCallback((uid: string, ids: string[]) => {
     try {
-      localStorage.setItem(`${SKIPPED_TASKS_KEY}_${uid}`, JSON.stringify({
+      appStorage.setItem(`${SKIPPED_TASKS_KEY}_${uid}`, JSON.stringify({
         date: getTodayKey(),
         taskIds: ids,
       }));

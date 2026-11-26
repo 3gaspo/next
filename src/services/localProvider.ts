@@ -1,3 +1,4 @@
+import { appStorage, guestUser, isGuestSession } from '@3gaspo/app-ui/guestSession';
 import { IAuthProvider, IDataProvider } from './interfaces';
 import { DEFAULT_DARK_MODE } from '@3gaspo/app-ui/themePreference';
 import { Task, UserSettings, AuthState, DEFAULT_PRIORITY_SETTINGS } from '../types';
@@ -8,8 +9,12 @@ const AUTH_KEY = 'next_local_auth';
 
 export class LocalAuthProvider implements IAuthProvider {
   onAuthStateChanged(callback: (state: AuthState) => void) {
-    const signedOut = localStorage.getItem('next_local_signed_out') === 'true';
-    const stored = localStorage.getItem(AUTH_KEY);
+    if (isGuestSession) {
+      callback({ user: guestUser, loading: false });
+      return () => {};
+    }
+    const signedOut = appStorage.getItem('next_local_signed_out') === 'true';
+    const stored = appStorage.getItem(AUTH_KEY);
     
     let user = null;
     if (!signedOut) {
@@ -17,7 +22,7 @@ export class LocalAuthProvider implements IAuthProvider {
         user = JSON.parse(stored);
       } else {
         user = { uid: 'local-dev-user', email: 'dev@next.app' };
-        localStorage.setItem(AUTH_KEY, JSON.stringify(user));
+        appStorage.setItem(AUTH_KEY, JSON.stringify(user));
       }
     }
     
@@ -29,25 +34,25 @@ export class LocalAuthProvider implements IAuthProvider {
     return () => {};
   }
   async signIn(email: string, _pass: string) {
-    localStorage.removeItem('next_local_signed_out');
-    localStorage.setItem(AUTH_KEY, JSON.stringify({ uid: 'local-dev-user', email }));
+    appStorage.removeItem('next_local_signed_out');
+    appStorage.setItem(AUTH_KEY, JSON.stringify({ uid: 'local-dev-user', email }));
     window.location.reload();
   }
   async signUp(email: string, _pass: string) {
-    localStorage.removeItem('next_local_signed_out');
-    localStorage.setItem(AUTH_KEY, JSON.stringify({ uid: 'local-dev-user', email }));
+    appStorage.removeItem('next_local_signed_out');
+    appStorage.setItem(AUTH_KEY, JSON.stringify({ uid: 'local-dev-user', email }));
     window.location.reload();
   }
   async signOut() {
-    localStorage.setItem('next_local_signed_out', 'true');
-    localStorage.removeItem(AUTH_KEY);
+    appStorage.setItem('next_local_signed_out', 'true');
+    appStorage.removeItem(AUTH_KEY);
     window.location.reload();
   }
 }
 
 export class LocalDataProvider implements IDataProvider {
   async getTasks(_uid: string): Promise<Task[]> {
-    const stored = localStorage.getItem(TASKS_KEY);
+    const stored = appStorage.getItem(TASKS_KEY);
     return stored ? JSON.parse(stored) : [];
   }
 
@@ -56,7 +61,7 @@ export class LocalDataProvider implements IDataProvider {
     const id = Math.random().toString(36).substr(2, 9);
     const newTask = { ...task, id };
     tasks.push(newTask);
-    localStorage.setItem(TASKS_KEY, JSON.stringify(tasks));
+    appStorage.setItem(TASKS_KEY, JSON.stringify(tasks));
     return id;
   }
 
@@ -65,20 +70,20 @@ export class LocalDataProvider implements IDataProvider {
     const index = tasks.findIndex(t => t.id === taskId);
     if (index !== -1) {
       tasks[index] = { ...tasks[index], ...updates };
-      localStorage.setItem(TASKS_KEY, JSON.stringify(tasks));
+      appStorage.setItem(TASKS_KEY, JSON.stringify(tasks));
     }
   }
 
   async deleteTask(_uid: string, taskId: string): Promise<void> {
     const tasks = await this.getTasks(_uid);
     const filtered = tasks.filter(t => t.id !== taskId);
-    localStorage.setItem(TASKS_KEY, JSON.stringify(filtered));
+    appStorage.setItem(TASKS_KEY, JSON.stringify(filtered));
   }
 
   async deleteTasks(_uid: string, taskIds: string[]): Promise<void> {
     const tasks = await this.getTasks(_uid);
     const filtered = tasks.filter(t => !taskIds.includes(t.id));
-    localStorage.setItem(TASKS_KEY, JSON.stringify(filtered));
+    appStorage.setItem(TASKS_KEY, JSON.stringify(filtered));
   }
 
   async deleteSubtree(_uid: string, taskId: string): Promise<void> {
@@ -93,15 +98,15 @@ export class LocalDataProvider implements IDataProvider {
 
     const idsToDelete = [taskId, ...getDescendantIds(taskId)];
     const filtered = tasks.filter(t => !idsToDelete.includes(t.id));
-    localStorage.setItem(TASKS_KEY, JSON.stringify(filtered));
+    appStorage.setItem(TASKS_KEY, JSON.stringify(filtered));
   }
 
   async getSettings(_uid: string): Promise<UserSettings | null> {
-    const stored = localStorage.getItem(SETTINGS_KEY);
+    const stored = appStorage.getItem(SETTINGS_KEY);
     return stored ? JSON.parse(stored) : { priority: DEFAULT_PRIORITY_SETTINGS, darkMode: DEFAULT_DARK_MODE, showScores: false };
   }
 
   async saveSettings(_uid: string, settings: UserSettings): Promise<void> {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    appStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   }
 }

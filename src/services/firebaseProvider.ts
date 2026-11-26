@@ -1,9 +1,11 @@
 import { initializeApp, getApps } from 'firebase/app';
+import { isGuestSession } from '@3gaspo/app-ui/guestSession';
 import { 
   getAuth, 
   onAuthStateChanged, 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
+  sendPasswordResetEmail,
   signOut 
 } from 'firebase/auth';
 import { 
@@ -32,7 +34,7 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-export const firebaseReady = !!(
+export const firebaseReady = !isGuestSession && !!(
   firebaseConfig.apiKey &&
   firebaseConfig.authDomain &&
   firebaseConfig.projectId &&
@@ -67,6 +69,7 @@ export class FirebaseAuthProvider implements IAuthProvider {
   async signUp(email: string, pass: string) {
     await createUserWithEmailAndPassword(auth, email, pass);
   }
+  resetPassword = (email: string) => sendPasswordResetEmail(auth, email);
   async signOut() {
     await signOut(auth);
   }
