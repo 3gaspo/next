@@ -48,3 +48,20 @@ export function getDescendantCounts(taskId: string, allTasks: Task[]) {
     completed: descendants.filter(d => d.completed).length
   };
 }
+
+/** Keep completed ancestors while any active descendant still needs its path. */
+export function getCompletedHistoryIds(tasks: Task[]): string[] {
+  const byId = new Map(tasks.map(task => [task.id, task]));
+  const retained = new Set<string>();
+  for (const task of tasks) {
+    if (task.completed) continue;
+    let parentId = task.parentId;
+    const visited = new Set<string>();
+    while (parentId && !visited.has(parentId)) {
+      visited.add(parentId);
+      retained.add(parentId);
+      parentId = byId.get(parentId)?.parentId ?? null;
+    }
+  }
+  return tasks.filter(task => task.completed && !retained.has(task.id)).map(task => task.id);
+}

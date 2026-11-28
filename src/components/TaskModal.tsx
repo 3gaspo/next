@@ -128,10 +128,10 @@ export default function TaskModal({ isOpen, onClose, onSave, task, parentId, ini
 
           <ValidatedForm id={formId} onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <label className="ui-field-label text-[10px] font-bold uppercase tracking-widest text-ui-ink/40">
+              <label htmlFor={formId + "-field-1"} className="ui-field-label text-[10px] font-bold uppercase tracking-widest text-ui-ink/40">
                 {isFolder ? 'Folder Name' : 'Task Name'}
               </label>
-              <input
+              <input id={formId + "-field-1"}
                 autoFocus
                 required
                 value={name}
@@ -143,10 +143,10 @@ export default function TaskModal({ isOpen, onClose, onSave, task, parentId, ini
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="ui-field-label text-[10px] font-bold uppercase tracking-widest text-ui-ink/40 flex items-center gap-2">
+                <label htmlFor={formId + "-field-2"} className="ui-field-label text-[10px] font-bold uppercase tracking-widest text-ui-ink/40 flex items-center gap-2">
                   <CalendarPlus size={12} /> Added Date
                 </label>
-                <input
+                <input id={formId + "-field-2"}
                   type="date"
                   value={addedDate}
                   onChange={e => setAddedDate(e.target.value)}
@@ -155,10 +155,10 @@ export default function TaskModal({ isOpen, onClose, onSave, task, parentId, ini
               </div>
 
               <div className="space-y-2">
-                <label className="ui-field-label text-[10px] font-bold uppercase tracking-widest text-ui-ink/40 flex items-center gap-2">
+                <label htmlFor={formId + "-field-3"} className="ui-field-label text-[10px] font-bold uppercase tracking-widest text-ui-ink/40 flex items-center gap-2">
                   <Calendar size={12} /> Deadline
                 </label>
-                <input
+                <input id={formId + "-field-3"}
                   type="date"
                   value={deadline}
                   onChange={e => setDeadline(e.target.value)}
@@ -169,10 +169,10 @@ export default function TaskModal({ isOpen, onClose, onSave, task, parentId, ini
               {!isFolder && (
                 <>
                   <div className="space-y-2">
-                    <label className="ui-field-label text-[10px] font-bold uppercase tracking-widest text-ui-ink/40 flex items-center gap-2">
+                    <label htmlFor={formId + "-field-4"} className="ui-field-label text-[10px] font-bold uppercase tracking-widest text-ui-ink/40 flex items-center gap-2">
                       <Clock size={12} /> Duration (mins)
                     </label>
-                    <input
+                    <input id={formId + "-field-4"}
                       type="number"
                       value={duration}
                       onChange={e => setDuration(e.target.value)}
@@ -181,10 +181,10 @@ export default function TaskModal({ isOpen, onClose, onSave, task, parentId, ini
                   </div>
 
                   <div className="space-y-2">
-                    <label className="ui-field-label text-[10px] font-bold uppercase tracking-widest text-ui-ink/40 flex items-center gap-2">
+                    <label htmlFor={formId + "-field-5"} className="ui-field-label text-[10px] font-bold uppercase tracking-widest text-ui-ink/40 flex items-center gap-2">
                       <Target size={12} /> Importance (1-10)
                     </label>
-                    <input
+                    <input id={formId + "-field-5"}
                       type="number"
                       min="1" max="10"
                       value={importance}
@@ -194,10 +194,10 @@ export default function TaskModal({ isOpen, onClose, onSave, task, parentId, ini
                   </div>
 
                   <div className="space-y-2">
-                    <label className="ui-field-label text-[10px] font-bold uppercase tracking-widest text-ui-ink/40 flex items-center gap-2">
+                    <label htmlFor={formId + "-field-6"} className="ui-field-label text-[10px] font-bold uppercase tracking-widest text-ui-ink/40 flex items-center gap-2">
                       <Zap size={12} /> Effort (1-10)
                     </label>
-                    <input
+                    <input id={formId + "-field-6"}
                       type="number"
                       min="1" max="10"
                       value={effort}
@@ -207,10 +207,10 @@ export default function TaskModal({ isOpen, onClose, onSave, task, parentId, ini
                   </div>
 
                   <div className="space-y-2">
-                    <label className="ui-field-label text-[10px] font-bold uppercase tracking-widest text-ui-ink/40 flex items-center gap-2">
+                    <label htmlFor={formId + "-field-7"} className="ui-field-label text-[10px] font-bold uppercase tracking-widest text-ui-ink/40 flex items-center gap-2">
                       <Heart size={12} /> Appreciation (1-10)
                     </label>
-                    <input
+                    <input id={formId + "-field-7"}
                       type="number"
                       min="1" max="10"
                       value={appreciation}

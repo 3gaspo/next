@@ -4,7 +4,7 @@ import { DEFAULT_DARK_MODE } from '@3gaspo/app-ui/themePreference';
 import { isToday, parseISO } from 'date-fns';
 import { Task, UserSettings, DEFAULT_PRIORITY_SETTINGS } from '../types';
 import { authProvider, dataProvider } from '../services/providerFactory';
-import { getLeafTasks } from '../lib/tree';
+import { getLeafTasks, getCompletedHistoryIds } from '../lib/tree';
 import { sortTasksByPriority } from '../lib/priority';
 import { useToday } from './useToday';
 
@@ -264,7 +264,7 @@ function isCompletedToday(task: Task): boolean {
 
   const clearHistory = async () => {
     if (!user) return;
-    const completedTaskIds = tasks.filter(t => t.completed).map(t => t.id);
+    const completedTaskIds = getCompletedHistoryIds(tasks);
     await dataProvider.deleteTasks(user.uid, completedTaskIds);
     await fetchData();
   };
